@@ -18,3 +18,4 @@ desktop.ini
 !.vscode/*.code-snippets
 
 # Tip: .git/info/exclude is your personal gitignore for things that don't belong here
+.vercel
