@@ -1,6 +1,6 @@
 // name: filter effect website
 // description: filter effect website
-// author: katboizz <https://scratch.mit.edu/users/katboizz>
+// Original: katboizz <https://scratch.mit.edu/users/katboizz>
 // license: MIT
 (function(scratch) {
 

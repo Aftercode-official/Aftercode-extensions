@@ -11,7 +11,6 @@
     throw new Error('unsandboxed required');
   }
 
-  // ---------- Load CodeMirror ----------
   async function loadCodeMirror() {
     if (window.CodeMirror) return;
     await new Promise((resolve) => {
@@ -52,7 +51,6 @@
     getStorageVariable(id).value = code;
   }
 
-  // ---------- Modal CodeMirror ----------
   async function openEditorModal(id) {
   await loadCodeMirror();
   const currentCode = readCode(id);
@@ -123,7 +121,7 @@
     }
   });
 }
-  // ---------- Extension ----------
+
   class JSCodeExtension {
     getInfo() {
       return {
