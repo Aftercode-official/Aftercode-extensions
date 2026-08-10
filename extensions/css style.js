@@ -59,9 +59,9 @@ class katcss {
           }
         },
         {
-          opcode: 'customfilter',
+          opcode: 'customcss',
           blockType: Scratch.BlockType.COMMAND,
-          text: 'create custom filter [CUSTOM]',
+          text: 'create custom css [CUSTOM]',
           disableMonitor: true,
           arguments: {
             CUSTOM: {
@@ -106,7 +106,7 @@ class katcss {
     document.body.setAttribute('style', "width:100%;position:absolute!important;");
   }
 
-  customfilter(args) {
+  customcss(args) {
     const filterName = Scratch.Cast.toString(args.CUSTOM).trim();
     if (!filterName) return;
 
