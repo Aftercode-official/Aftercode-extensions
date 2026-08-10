@@ -8,7 +8,7 @@
     throw new Error('This extension must be run unsandboxed');
   }
 
-class custompageeffect {
+class katcss {
 
   constructor() {
     this.value = 1;
@@ -21,8 +21,8 @@ class custompageeffect {
 
   getInfo() {
     return {
-      id: 'katprojectpage',
-      name: 'custom project page effect',
+      id: 'katcss',
+      name: 'css style',
       color1: '#ffd900',
       color2: '#c0ad00',
       blocks: [
@@ -127,6 +127,6 @@ class custompageeffect {
   }
 }
 
-Scratch.extensions.register(new custompageeffect());
+Scratch.extensions.register(new katcss());
 
 }(Scratch));
