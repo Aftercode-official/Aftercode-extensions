@@ -1,7 +1,6 @@
 //  name: javascript
 //  version: 1.0
 //  description: javascript code editor and runner for scratch
-//  Original: katboizz <https://scratch.mit.edu/users/katboizz/>
 //  License: MIT AND MPL-2.0
 
 (function (Scratch) {
