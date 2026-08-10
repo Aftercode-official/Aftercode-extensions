@@ -1,5 +1,5 @@
-// name: filter effect website
-// description: filter effect website
+// name: css style
+// description: custom css for page project
 // license: MIT
 (function(scratch) {
 
