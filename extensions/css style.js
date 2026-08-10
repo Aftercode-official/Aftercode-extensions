@@ -23,8 +23,8 @@ class katcss {
     return {
       id: 'katcss',
       name: 'css style',
-      color1: '#ffd900',
-      color2: '#c0ad00',
+      color1: '#00aeff',
+      color2: '#00a6ac',
       blocks: [
         {
           opcode: 'effect',

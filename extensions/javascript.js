@@ -126,6 +126,8 @@
       return {
         id: 'jscodeextension',
         name: 'JS Code',
+        color1: '#e5ff00',
+        color2: '#a9ac00',
         blocks: [
           {
             opcode: 'openEditor',
