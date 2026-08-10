@@ -12,7 +12,7 @@ class custompageeffect {
 
   constructor() {
     this.value = 1;
-    // Danh sách các filter mặc định
+    
     this.customFiltersList = [
       { text: "filter: contrast", value: "filter: contrast" },
       { text: "filter: brightness", value: "filter: brightness" }
@@ -61,7 +61,7 @@ class custompageeffect {
         {
           opcode: 'customfilter',
           blockType: Scratch.BlockType.COMMAND,
-          text: 'set custom filter to [CUSTOM]',
+          text: 'create custom filter [CUSTOM]',
           disableMonitor: true,
           arguments: {
             CUSTOM: {
@@ -80,13 +80,13 @@ class custompageeffect {
       menus: {
         STR: {
           acceptReporters: true,
-          items: 'getDynamicMenu' // Trỏ tới hàm tạo menu động
+          items: 'getDynamicMenu'
         }
       }
     };
   }
 
-  // Hàm trả về danh sách menu động
+  
   getDynamicMenu() {
     return this.customFiltersList;
   }
