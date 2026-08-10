@@ -1,6 +1,6 @@
 [
   // This file supports comments
-  "visualizer",
+  "javascript",
   "lab/text",
   "lab/face-sensing",
   "lab/video-sprites",
