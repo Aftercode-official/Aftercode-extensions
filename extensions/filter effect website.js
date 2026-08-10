@@ -110,10 +110,10 @@ class custompageeffect {
     const filterName = Scratch.Cast.toString(args.CUSTOM).trim();
     if (!filterName) return;
 
-    // Chuẩn hóa chuỗi filter (ví dụ: 'invert' -> 'filter: invert')
+    
     const formattedValue = filterName.startsWith('filter:') ? filterName : "filter: " + filterName;
 
-    // Kiểm tra nếu chưa có trong danh sách thì tự động thêm vào dropdown
+    
     const exists = this.customFiltersList.some(item => item.value === formattedValue);
     if (!exists) {
       this.customFiltersList.push({
