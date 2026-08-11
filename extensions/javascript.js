@@ -126,7 +126,7 @@
       return {
         id: 'jscodeextension',
         name: 'JS Code',
-        color1: '#e5ff00',
+        color1: '#e7e300',
         color2: '#a9ac00',
         blocks: [
           {
