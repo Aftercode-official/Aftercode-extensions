@@ -1,5 +1,5 @@
 // name: css style
-// description: custom css for page project
+// description: custom css for project page
 // license: MIT
 (function(scratch) {
 
