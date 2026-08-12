@@ -2,6 +2,7 @@
 // ID: ExtraEffects
 // Description: Advanced shader effects extension for scratch, big thanks to ObviousAlexC for system shaders for this extension
 // By: katboizz <https://scratch.mit.edu/users/katboizz/>
+// License: MIT
 
 (function (Scratch) {
   "use strict";

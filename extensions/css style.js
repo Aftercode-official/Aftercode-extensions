@@ -1,5 +1,6 @@
 // name: css style
 // description: custom css for project page
+// By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // license: MIT
 (function(scratch) {
 

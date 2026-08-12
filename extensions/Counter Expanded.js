@@ -1,6 +1,7 @@
 // Name: Counter Expanded
 // ID: CounterExpanded
 // Description: A tool providing comprehensive counter management features for your game.
+// By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // License: MIT
 
 (function(Scratch) {

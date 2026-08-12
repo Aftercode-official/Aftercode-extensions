@@ -1,5 +1,6 @@
 // Name: Fake windows
 // Description: create a fake window in your project page
+// By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // License: MIT
 class FakeWindowExtension {
     constructor() {
