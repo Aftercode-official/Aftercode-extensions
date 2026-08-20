@@ -29,7 +29,7 @@
     let particles = [];
     const maxParticles = 30; 
 
-    let is3D = false; 
+
     let pulseIntensity = 3;      
     let isMirror = false;        
     let barStyle = 'solid';      
@@ -74,8 +74,6 @@
                     { opcode: 'startSpectrum', blockType: Scratch.BlockType.COMMAND, text: 'start spectrum' },
                     { opcode: 'startBoth', blockType: Scratch.BlockType.COMMAND, text: 'start both visualizers' },
                     { opcode: 'stop', blockType: Scratch.BlockType.COMMAND, text: 'stop visualizer' },
-                    { opcode: 'enable3D', blockType: Scratch.BlockType.COMMAND, text: 'enable 3D bar' },
-                    { opcode: 'disable3D', blockType: Scratch.BlockType.COMMAND, text: 'disable 3D bar' },
                     {
                         opcode: 'barcount', blockType: Scratch.BlockType.COMMAND, text: 'set number of bars [AMOUNT]',
                         arguments: { AMOUNT: { type: Scratch.ArgumentType.NUMBER, defaultValue: 52 } }
@@ -233,8 +231,7 @@
             }
         }
 
-        enable3D() { is3D = true; }
-        disable3D() { is3D = false; }
+       
         setPulse(args) { pulseIntensity = Number(args.NUM); }
         setMirror(args) { isMirror = args.STATE === 'true'; }
         setBarStyle(args) { barStyle = args.STYLE; }
@@ -446,15 +443,8 @@
                 const v = data[i];
                 let h = (v / 255) * (offscreenCanvas.height * 0.4) * sensitivity;
 
-                if (h >= peaks[i]) { peaks[i] = h; peakDropCounters[i] = 0; } 
-                else {
-                    peakDropCounters[i]++;
-                    if (peakDropCounters[i] > 15) { peaks[i] -= 2.5; if (peaks[i] < 0) peaks[i] = 0; }
-                }
-
                 if (spectrumShape === 'linear') {
                     const barW = offscreenCanvas.width / (isMirror ? bars * 2 : bars);
-                    const depth = is3D ? Math.max(1.5, barW * 0.25) : 0;
                     const drawPositions = isMirror ? [offscreenCanvas.width/2 + i*barW, offscreenCanvas.width/2 - (i+1)*barW] : [i*barW];
 
                     drawPositions.forEach(currentX => {
@@ -463,14 +453,7 @@
 
                         if (h > 0) {
                             ctx.fillStyle = currentFill;
-                            if (is3D) {
-                                ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath();
-                                ctx.moveTo(currentX + widthBar, baselineY);
-                                ctx.lineTo(currentX + widthBar + depth, baselineY + (depth * direction));
-                                ctx.lineTo(currentX + widthBar + depth, baselineY + ((h + depth) * direction));
-                                ctx.lineTo(currentX + widthBar, baselineY + (h * direction)); ctx.fill(); ctx.restore();
-                                ctx.fillRect(currentX, (direction === -1) ? baselineY - h : baselineY, widthBar, h);
-                            } else {
+                            {
                                 if (barStyle === 'solid') {
                                     ctx.fillRect(currentX, (direction === -1) ? baselineY - h : baselineY, widthBar, h);
                                 } else if (barStyle === 'led') {
