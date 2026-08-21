@@ -11,7 +11,6 @@ class FakeWindowExtension {
     requestAnimationFrame(this.updateLoop);
 }
 
-
     getInfo() {
         return {
             id: 'fakewindows',
