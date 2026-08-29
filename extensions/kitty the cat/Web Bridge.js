@@ -1,8 +1,3 @@
-// Name: Web Bridge
-// ID: webbridge
-// Description: Extension Web Bridge allows a Aftercode project to connect to a web server via WebSocket, create a room, and provide a dedicated webpage for that room.
-// By: Kitty the cat <https://scratch.mit.edu/users/_kitty-the-cat_/>
-// License: MIT
 (function (Scratch) {
     "use strict";
 
@@ -33,8 +28,6 @@
                 id: "webbridge",
 
                 name: "Web Bridge",
-                
-                docsURI:"https://github.com/kittythecat019/extension-web-server/blob/main/README.md",
 
                 color1: "#4C97FF",
 
@@ -307,7 +300,7 @@
 
                 this.ws =
                     new WebSocket(
-                        "wss-http-sever-web-bridge"
+                        "wss://extension-web-server-8fkf.onrender.com"
                     );
 
 
@@ -382,7 +375,7 @@
 
 
                             this.webUrl =
-                                "http-server-web-bridge" +
+                                "https://extension-web-server-8fkf.onrender.com" +
                                 data.url;
 
 
