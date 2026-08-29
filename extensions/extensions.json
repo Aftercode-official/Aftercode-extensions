@@ -1,11 +1,11 @@
 [
   // This file supports comments
-  "Visualizer",
-  "Extra effects",
-  "fake windows",
-  "Counter Expanded",
-  "css style",
-  "javascript",
+  "katboizz/Visualizer",
+  "katboizz/Extra effects",
+  "katboizz/fake windows",
+  "katboizz/Counter Expanded",
+  "katboizz/css style",
+  "katboizz/javascript",
   "lab/text",
   "lab/face-sensing",
   "lab/video-sprites",
