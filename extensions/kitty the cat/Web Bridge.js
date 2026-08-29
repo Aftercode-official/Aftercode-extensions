@@ -34,6 +34,8 @@
 
                 name: "Web Bridge",
 
+                docsURI:'https://github.com/kittythecat019/extension-web-server/blob/main/README.md',
+
                 color1: "#4C97FF",
 
                 color2: "#3373CC",
