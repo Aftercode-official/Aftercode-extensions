@@ -2,6 +2,7 @@
 // ID: webbridge
 // Description: Extension Web Bridge allows a Aftercode project to connect to a web server via WebSocket, create a room, and provide a dedicated webpage for that room.
 // By: Kitty the cat <https://scratch.mit.edu/users/_kitty-the-cat_/>
+// By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // License: MIT
 (function (Scratch) {
     "use strict";
