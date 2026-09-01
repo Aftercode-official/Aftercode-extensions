@@ -1,8 +1,8 @@
-// Name: Visualizer
+// Name: Visualizer Pro
 // ID: Visualizer
-// Description: A real visualizer showing on your project
-// By: katboizz <https://scratch.mit.edu/users/katboizz/>
-//  License: MIT
+// Description: A real, optimized audio visualizer showing on your project.
+// By: katboizz (Improved version)
+// License: MIT
 (function (Scratch) {
     'use strict';
 
@@ -13,7 +13,6 @@
     let analyser = null;
     let audioReady = false;
 
-    
     let offscreenCanvas = null;
     let ctx = null;
 
@@ -25,10 +24,10 @@
 
     let peaks = [];
     let peakDropCounters = [];
+    let showPeaks = true; // New feature
 
     let particles = [];
     const maxParticles = 30; 
-
 
     let pulseIntensity = 3;      
     let isMirror = false;        
@@ -45,66 +44,73 @@
     let motionTrail = false;       
     let particleStyle = 'white';   
     let bassDropEffect = false;    
-
     
     let visualizerSize = 100;
     let barcount = 52;
-    let visualizerWidth = 480;
-    let visualizerHeight = 360;
+    
+    // Dynamic size variables
+    let stageW = 480;
+    let stageH = 360;
+    let posX = 0; // New feature
+    let posY = 0; // New feature
 
     let currentBass = 0; let currentMid = 0; let currentTreble = 0;
     let shakeX = 0; let shakeY = 0;
 
-    
+    // Optimized memory buffers
+    let freqData = null;
+    let timeData = null;
+
     let renderer = null;
     let drawableId = null;
     let skinId = null;
 
     class WebGLAudioVisualizer {
-
         getInfo() {
             return {
                 id: 'Visualizer',
-                name: 'Visualizer',
+                name: 'Visualizer Pro',
                 color1: '#007694',
                 color2: '#00657e',
                 color3: '#005e75',
                 blocks: [
+                    // --- Core Controls ---
                     { opcode: 'startWaveform', blockType: Scratch.BlockType.COMMAND, text: 'start waveform' },
                     { opcode: 'startSpectrum', blockType: Scratch.BlockType.COMMAND, text: 'start spectrum' },
                     { opcode: 'startBoth', blockType: Scratch.BlockType.COMMAND, text: 'start both visualizers' },
                     { opcode: 'stop', blockType: Scratch.BlockType.COMMAND, text: 'stop visualizer' },
+                    
+                    '---',
+                    // --- Display Settings ---
+                    {
+                        opcode: 'setSize', blockType: Scratch.BlockType.COMMAND, text: 'set visualizer size [NUM] %',
+                        arguments: { NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 100 } }
+                    },
+                    {
+                        opcode: 'setPosition', blockType: Scratch.BlockType.COMMAND, text: 'go to x: [X] y: [Y]',
+                        arguments: { 
+                            X: { type: Scratch.ArgumentType.NUMBER, defaultValue: 0 },
+                            Y: { type: Scratch.ArgumentType.NUMBER, defaultValue: 0 }
+                        }
+                    },
+                    {
+                        opcode: 'setLayer', blockType: Scratch.BlockType.COMMAND, text: 'go to [LAYER] layer',
+                        arguments: { LAYER: { type: Scratch.ArgumentType.STRING, menu: 'menuLayer', defaultValue: 'front' } }
+                    },
+
+                    '---',
+                    // --- Spectrum & Wave Config ---
                     {
                         opcode: 'barcount', blockType: Scratch.BlockType.COMMAND, text: 'set number of bars [AMOUNT]',
                         arguments: { AMOUNT: { type: Scratch.ArgumentType.NUMBER, defaultValue: 52 } }
                     },
                     {
+                        opcode: 'setSmoothing', blockType: Scratch.BlockType.COMMAND, text: 'set audio smoothing to [NUM]',
+                        arguments: { NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 0.8 } }
+                    },
+                    {
                         opcode: 'setSpectrumShape', blockType: Scratch.BlockType.COMMAND, text: 'change spectrum shape to [SHAPE]',
                         arguments: { SHAPE: { type: Scratch.ArgumentType.STRING, menu: 'menuShape', defaultValue: 'linear' } }
-                    },
-                    {
-                        opcode: 'setMotionTrail', blockType: Scratch.BlockType.COMMAND, text: 'set motion trail [STATE]',
-                        arguments: { STATE: { type: Scratch.ArgumentType.STRING, menu: 'menuToggle', defaultValue: 'false' } }
-                    },
-                    {
-                        opcode: 'setBassDrop', blockType: Scratch.BlockType.COMMAND, text: 'set bass drop effect [STATE]',
-                        arguments: { STATE: { type: Scratch.ArgumentType.STRING, menu: 'menuToggle', defaultValue: 'false' } }
-                    },
-                    {
-                        opcode: 'setParticleStyle', blockType: Scratch.BlockType.COMMAND, text: 'set particle style [PSTYLE]',
-                        arguments: { PSTYLE: { type: Scratch.ArgumentType.STRING, menu: 'menuPStyle', defaultValue: 'white' } }
-                    },
-                    {
-                        opcode: 'setCircleBarMode', blockType: Scratch.BlockType.COMMAND, text: 'set circle bars [CMODE]',
-                        arguments: { CMODE: { type: Scratch.ArgumentType.STRING, menu: 'menuCircleMode', defaultValue: 'outer' } }
-                    },
-                    {
-                        opcode: 'setSensitivity', blockType: Scratch.BlockType.COMMAND, text: 'set visualizer sensitivity [NUM]',
-                        arguments: { NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 1.0 } }
-                    },
-                    {
-                        opcode: 'setSize', blockType: Scratch.BlockType.COMMAND, text: 'set visualizer size [NUM] %',
-                        arguments: { NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 100 } }
                     },
                     {
                         opcode: 'setWaveStyle', blockType: Scratch.BlockType.COMMAND, text: 'change waveform style to [WSTYLE]',
@@ -115,17 +121,24 @@
                         arguments: { ANCHOR: { type: Scratch.ArgumentType.STRING, menu: 'menuAnchor', defaultValue: 'bottom' } }
                     },
                     {
-                        opcode: 'setPulse', blockType: Scratch.BlockType.COMMAND, text: 'set bass pulse intensity [NUM]',
-                        arguments: { NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 3 } }
+                        opcode: 'setBarStyle', blockType: Scratch.BlockType.COMMAND, text: 'change bar style to [STYLE]',
+                        arguments: { STYLE: { type: Scratch.ArgumentType.STRING, menu: 'menuStyle', defaultValue: 'solid' } }
+                    },
+                    {
+                        opcode: 'setCircleBarMode', blockType: Scratch.BlockType.COMMAND, text: 'set circle bars [CMODE]',
+                        arguments: { CMODE: { type: Scratch.ArgumentType.STRING, menu: 'menuCircleMode', defaultValue: 'outer' } }
                     },
                     {
                         opcode: 'setMirror', blockType: Scratch.BlockType.COMMAND, text: 'set mirror style [STATE]',
                         arguments: { STATE: { type: Scratch.ArgumentType.STRING, menu: 'menuToggle', defaultValue: 'false' } }
                     },
                     {
-                        opcode: 'setBarStyle', blockType: Scratch.BlockType.COMMAND, text: 'change bar style to [STYLE]',
-                        arguments: { STYLE: { type: Scratch.ArgumentType.STRING, menu: 'menuStyle', defaultValue: 'solid' } }
+                        opcode: 'setPeaks', blockType: Scratch.BlockType.COMMAND, text: 'show bar peaks [STATE]',
+                        arguments: { STATE: { type: Scratch.ArgumentType.STRING, menu: 'menuToggle', defaultValue: 'true' } }
                     },
+
+                    '---',
+                    // --- Colors & Effects ---
                     {
                         opcode: 'setWaveColor', blockType: Scratch.BlockType.COMMAND, text: 'set waveform color [COLOR]',
                         arguments: { COLOR: { type: Scratch.ArgumentType.COLOR, defaultValue: '#00ffcc' } }
@@ -135,8 +148,34 @@
                         arguments: { COLOR: { type: Scratch.ArgumentType.STRING, defaultValue: 'FL_GRADIENT' } }
                     },
                     {
+                        opcode: 'setMotionTrail', blockType: Scratch.BlockType.COMMAND, text: 'set motion trail [STATE]',
+                        arguments: { STATE: { type: Scratch.ArgumentType.STRING, menu: 'menuToggle', defaultValue: 'false' } }
+                    },
+                    {
+                        opcode: 'setBassDrop', blockType: Scratch.BlockType.COMMAND, text: 'set bass drop effect [STATE]',
+                        arguments: { STATE: { type: Scratch.ArgumentType.STRING, menu: 'menuToggle', defaultValue: 'false' } }
+                    },
+                    {
+                        opcode: 'setPulse', blockType: Scratch.BlockType.COMMAND, text: 'set bass pulse intensity [NUM]',
+                        arguments: { NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 3 } }
+                    },
+                    {
+                        opcode: 'setParticleStyle', blockType: Scratch.BlockType.COMMAND, text: 'set particle style [PSTYLE]',
+                        arguments: { PSTYLE: { type: Scratch.ArgumentType.STRING, menu: 'menuPStyle', defaultValue: 'none' } }
+                    },
+                    
+                    '---',
+                    // --- Reporters ---
+                    {
+                        opcode: 'setSensitivity', blockType: Scratch.BlockType.COMMAND, text: 'set visualizer sensitivity [NUM]',
+                        arguments: { NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 1.0 } }
+                    },
+                    {
                         opcode: 'getAudioValue', blockType: Scratch.BlockType.REPORTER, text: 'get [TYPE] value',
                         arguments: { TYPE: { type: Scratch.ArgumentType.STRING, menu: 'menuAudioType', defaultValue: 'bass' } }
+                    },
+                    {
+                        opcode: 'isBeatDetected', blockType: Scratch.BlockType.BOOLEAN, text: 'is beat detected?'
                     }
                 ],
                 menus: {
@@ -146,8 +185,9 @@
                     menuWaveStyle: { acceptReporters: true, items: [{ text: 'Line', value: 'line' }, { text: 'Bars', value: 'bars' }] },
                     menuAnchor: { acceptReporters: true, items: [{ text: 'Bottom', value: 'bottom' }, { text: 'Top', value: 'top' }, { text: 'Center', value: 'center' }] },
                     menuCircleMode: { acceptReporters: true, items: [{ text: 'Outer', value: 'outer' }, { text: 'Inner', value: 'inner' }, { text: 'Double', value: 'double' }] },
-                    menuPStyle: { acceptReporters: true, items: [{ text: 'White', value: 'white' }, { text: 'Rainbow', value: 'rainbow' }] },
-                    menuAudioType: { acceptReporters: true, items: [{ text: 'Bass', value: 'bass' }, { text: 'Mid', value: 'mid' }, { text: 'Treble', value: 'treble' }] }
+                    menuPStyle: { acceptReporters: true, items: [{ text: 'None', value: 'none' }, { text: 'White', value: 'white' }, { text: 'Rainbow', value: 'rainbow' }] },
+                    menuAudioType: { acceptReporters: true, items: [{ text: 'Bass', value: 'bass' }, { text: 'Mid', value: 'mid' }, { text: 'Treble', value: 'treble' }] },
+                    menuLayer: { acceptReporters: false, items: [{ text: 'front', value: 'front' }, { text: 'back', value: 'back' }] }
                 }
             };
         }
@@ -155,29 +195,45 @@
         hookAudio() {
             try {
                 const engine = Scratch.vm.runtime.audioEngine;
+                if (!engine) return false;
+                
                 const audioCtx = engine.audioContext;
                 analyser = audioCtx.createAnalyser();
                 analyser.fftSize = 1024;
+                analyser.smoothingTimeConstant = 0.8; // Default smoothing
                 engine.inputNode.connect(analyser);
 
                 const bufferLength = analyser.frequencyBinCount;
+                
+                // Pre-allocate arrays for performance
+                freqData = new Uint8Array(bufferLength);
+                timeData = new Uint8Array(analyser.fftSize);
+                
                 peaks = new Array(bufferLength).fill(0);
                 peakDropCounters = new Array(bufferLength).fill(0);
 
+                this.updateStageSize();
                 this.initParticles();
                 audioReady = true;
                 return true;
-            } catch (e) { console.error(e); return false; }
+            } catch (e) { console.error("Audio hook failed:", e); return false; }
+        }
+
+        updateStageSize() {
+            stageW = Scratch.vm.runtime.stageWidth;
+            stageH = Scratch.vm.runtime.stageHeight;
+            if (offscreenCanvas) {
+                offscreenCanvas.width = stageW;
+                offscreenCanvas.height = stageH;
+            }
         }
 
         initParticles() {
             particles = [];
-            const w = offscreenCanvas ? offscreenCanvas.width : 480;
-            const h = offscreenCanvas ? offscreenCanvas.height : 360;
             for (let i = 0; i < maxParticles; i++) {
                 particles.push({
-                    x: Math.random() * w,
-                    y: Math.random() * h,
+                    x: Math.random() * stageW,
+                    y: Math.random() * stageH,
                     size: Math.random() * 1.5 + 0.8,
                     speedY: Math.random() * 0.4 + 0.2,
                     alpha: Math.random() * 0.4 + 0.1,
@@ -186,29 +242,31 @@
             }
         }
 
-        
         setupWebGLRenderer() {
             if (skinId !== null) return;
 
             renderer = Scratch.vm.runtime.renderer;
-            
+            this.updateStageSize();
             
             offscreenCanvas = document.createElement('canvas');
-            offscreenCanvas.width = 480;
-            offscreenCanvas.height = 360;
+            offscreenCanvas.width = stageW;
+            offscreenCanvas.height = stageH;
             ctx = offscreenCanvas.getContext('2d');
-
             
             skinId = renderer.createBitmapSkin(offscreenCanvas, 1);
             drawableId = renderer.createDrawable('background');
-            renderer.updateDrawableProperties(drawableId, {
-                skinId: skinId,
-                position: [0, 0],
-                scale: [visualizerSize, visualizerSize],
-                direction: 90
-            });
+            this.updateDrawable();
+        }
 
-            this.initParticles();
+        updateDrawable() {
+            if (renderer && drawableId !== null) {
+                renderer.updateDrawableProperties(drawableId, {
+                    skinId: skinId,
+                    position: [posX, posY],
+                    scale: [visualizerSize, visualizerSize],
+                    direction: 90
+                });
+            }
         }
 
         startWaveform() { mode = 'waveform'; this.start(); }
@@ -231,9 +289,10 @@
             }
         }
 
-       
+        setSmoothing(args) { if(analyser) analyser.smoothingTimeConstant = Math.max(0, Math.min(0.99, Number(args.NUM))); }
         setPulse(args) { pulseIntensity = Number(args.NUM); }
         setMirror(args) { isMirror = args.STATE === 'true'; }
+        setPeaks(args) { showPeaks = args.STATE === 'true'; }
         setBarStyle(args) { barStyle = args.STYLE; }
         setSpectrumShape(args) { spectrumShape = args.SHAPE; }
         setWaveStyle(args) { waveStyle = args.WSTYLE; }
@@ -246,24 +305,30 @@
         setParticleStyle(args) { particleStyle = args.PSTYLE; }
         setBassDrop(args) { bassDropEffect = args.STATE === 'true'; }
         
-        
         setSize(args) {
             visualizerSize = Number(args.NUM);
+            this.updateDrawable();
+        }
+
+        setPosition(args) {
+            posX = Number(args.X);
+            posY = Number(args.Y);
+            this.updateDrawable();
+        }
+
+        setLayer(args) {
             if (renderer && drawableId !== null) {
-                renderer.updateDrawableProperties(drawableId, {
-                    scale: [visualizerSize, visualizerSize]
-                });
+                if (args.LAYER === 'front') {
+                    // Pull to front by placing it at the very top of the stack
+                    renderer.setDrawableOrder(drawableId, Infinity);
+                } else {
+                    // Push to back (just above standard background)
+                    renderer.setDrawableOrder(drawableId, -Infinity);
+                }
             }
         }
 
-        barcount(args) {
-            barcount = Math.max(1, Math.min(200, Number(args.AMOUNT)));
-             if (renderer && drawableId !== null) {
-                renderer.updateDrawableProperties(drawableId, {
-                    scale: [visualizerSize, visualizerSize]
-                });
-            }
-        }
+        barcount(args) { barcount = Math.max(1, Math.min(256, Number(args.AMOUNT))); }
         
         getAudioValue(args) {
             if (args.TYPE === 'bass') return Math.round(currentBass * 100);
@@ -271,6 +336,8 @@
             if (args.TYPE === 'treble') return Math.round(currentTreble * 100);
             return 0;
         }
+
+        isBeatDetected() { return currentBass > 0.85; }
 
         loop() { 
             if (!running) return; 
@@ -281,7 +348,11 @@
         draw() {
             if (!analyser || !ctx || !offscreenCanvas || !renderer) return;
             
-            const freqData = new Uint8Array(analyser.frequencyBinCount);
+            // Check if stage size changed
+            if (stageW !== Scratch.vm.runtime.stageWidth || stageH !== Scratch.vm.runtime.stageHeight) {
+                this.updateStageSize();
+            }
+            
             analyser.getByteFrequencyData(freqData);
 
             let bSum = 0, mSum = 0, tSum = 0;
@@ -294,7 +365,7 @@
             currentTreble = tSum / 64 / 255;
 
             shakeX = 0; shakeY = 0;
-            if (bassDropEffect && currentBass > 0.86) {
+            if (bassDropEffect && this.isBeatDetected()) {
                 shakeX = (Math.random() - 0.5) * 8;
                 shakeY = (Math.random() - 0.5) * 8;
             }
@@ -304,9 +375,9 @@
 
             if (motionTrail) {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'; 
-                ctx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+                ctx.fillRect(0, 0, stageW, stageH);
             } else {
-                ctx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+                ctx.clearRect(0, 0, stageW, stageH);
             }
 
             if (pulseIntensity > 0 && currentBass > 0.35) {
@@ -314,11 +385,13 @@
                 const alphaPulse = (currentBass * 0.12) * (pulseIntensity / 5);
                 ctx.fillStyle = spectrumColor === 'FL_GRADIENT' ? 'rgba(0, 255, 204,' + alphaPulse + ')' : waveColor;
                 ctx.globalAlpha = alphaPulse;
-                ctx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+                ctx.fillRect(0, 0, stageW, stageH);
                 ctx.restore();
             }
 
-            this.drawParticles(currentTreble); 
+            if(particleStyle !== 'none') {
+                this.drawParticles(currentTreble); 
+            }
 
             if (bassDropEffect && currentBass > 0.88) {
                 ctx.save();
@@ -341,11 +414,11 @@
             for (let i = 0; i < particles.length; i++) {
                 let p = particles[i];
                 p.y -= (p.speedY + (trebleIntensity * 4.0));
-                if (p.y < 0) { p.y = offscreenCanvas.height; p.x = Math.random() * offscreenCanvas.width; }
+                if (p.y < 0) { p.y = stageH; p.x = Math.random() * stageW; }
                 ctx.beginPath(); 
                 if (particleStyle === 'white') {
                     ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.7, p.alpha + (trebleIntensity * 0.3))})`;
-                } else {
+                } else if (particleStyle === 'rainbow') {
                     p.hue = (p.hue + 1) % 360; 
                     ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, ${Math.min(0.7, p.alpha + (trebleIntensity * 0.3))})`;
                 }
@@ -355,27 +428,26 @@
         }
 
         drawWaveTop() {
+            analyser.getByteTimeDomainData(timeData);
+            
+            ctx.save();
+            ctx.strokeStyle = waveColor;
+            ctx.lineWidth = 1.5;
+
             if (spectrumShape === 'circle' && mode === 'both') {
-                const data = new Uint8Array(analyser.fftSize);
-                analyser.getByteTimeDomainData(data);
-                
-                ctx.save();
-                ctx.strokeStyle = waveColor;
-                ctx.lineWidth = 1.5;
                 ctx.globalAlpha = 0.8;
-                
-                const centerX = offscreenCanvas.width / 2;
-                const centerY = offscreenCanvas.height / 2;
-                const baseRadius = Math.min(offscreenCanvas.width, offscreenCanvas.height) * 0.14; 
+                const centerX = stageW / 2;
+                const centerY = stageH / 2;
+                const baseRadius = Math.min(stageW, stageH) * 0.14; 
 
                 ctx.beginPath();
                 const totalPoints = 120; 
-                const sampleStep = Math.floor(data.length / totalPoints);
+                const sampleStep = Math.floor(timeData.length / totalPoints);
 
                 for (let i = 0; i <= totalPoints; i++) {
                     const angle = (i / totalPoints) * Math.PI * 2 + imgRotation;
-                    const audioIdx = Math.min(data.length - 1, i * sampleStep);
-                    const waveVal = (data[audioIdx] / 128.0 - 1.0) * 25 * sensitivity; 
+                    const audioIdx = Math.min(timeData.length - 1, i * sampleStep);
+                    const waveVal = (timeData[audioIdx] / 128.0 - 1.0) * 25 * sensitivity; 
                     
                     const r = baseRadius + waveVal;
                     const x = centerX + Math.cos(angle) * r;
@@ -389,31 +461,24 @@
                 return;
             }
 
-            const data = new Uint8Array(analyser.fftSize);
-            analyser.getByteTimeDomainData(data);
-
-            ctx.save();
-            ctx.strokeStyle = waveColor;
-            ctx.lineWidth = 1.5;
-
-            const step = offscreenCanvas.width / data.length;
-            const centerY = offscreenCanvas.height * 0.25;
+            const step = stageW / timeData.length;
+            const centerY = stageH * 0.25;
 
             if (waveStyle === 'line') {
                 ctx.beginPath();
-                let x = 0; ctx.moveTo(0, ((data[0] / 255) * (offscreenCanvas.height * 0.5)));
-                for (let i = 0; i < data.length - 1; i += 4) { 
-                    const x1 = x; const y1 = ((data[i] / 255) * (offscreenCanvas.height * 0.5));
-                    const x2 = x + (step * 4); const y2 = ((data[i + 1] / 255) * (offscreenCanvas.height * 0.5));
+                let x = 0; ctx.moveTo(0, ((timeData[0] / 255) * (stageH * 0.5)));
+                for (let i = 0; i < timeData.length - 1; i += 4) { 
+                    const x1 = x; const y1 = ((timeData[i] / 255) * (stageH * 0.5));
+                    const x2 = x + (step * 4); const y2 = ((timeData[i + 1] / 255) * (stageH * 0.5));
                     ctx.quadraticCurveTo(x1, y1, (x1 + x2) / 2, (y1 + y2) / 2); x += step * 4;
                 }
                 ctx.stroke();
             } else {
-                const sampleStep = Math.floor(data.length / 50); 
-                const barWidth = (offscreenCanvas.width / 50) - 2;
+                const sampleStep = Math.floor(timeData.length / 50); 
+                const barWidth = (stageW / 50) - 2;
                 ctx.fillStyle = waveColor;
                 for (let i = 0; i < 50; i++) {
-                    const v = (data[i * sampleStep] / 128.0 - 1.0) * sensitivity; 
+                    const v = (timeData[i * sampleStep] / 128.0 - 1.0) * sensitivity; 
                     const h = v * 35; ctx.fillRect(i * (barWidth + 2), centerY - h, barWidth, h * 2 || 2);
                 }
             }
@@ -426,26 +491,38 @@
 
             let currentFill;
             if (spectrumColor === 'FL_GRADIENT') {
-                const gradient = ctx.createLinearGradient(0, offscreenCanvas.height, 0, offscreenCanvas.height - (offscreenCanvas.height * 0.4));
+                const gradient = ctx.createLinearGradient(0, stageH, 0, stageH - (stageH * 0.4));
                 gradient.addColorStop(0.0, '#00ffcc'); gradient.addColorStop(0.5, '#00ff22');
                 gradient.addColorStop(1.0, '#ff0044');
                 currentFill = gradient;
             } else { currentFill = spectrumColor; }
 
-            let baselineY = offscreenCanvas.height;
-            if (spectrumAnchor === 'top') baselineY = offscreenCanvas.height * 0.5;
-            if (spectrumAnchor === 'center') baselineY = offscreenCanvas.height * 0.75;
+            let baselineY = stageH;
+            if (spectrumAnchor === 'top') baselineY = stageH * 0.5;
+            if (spectrumAnchor === 'center') baselineY = stageH * 0.75;
 
-            const centerX = offscreenCanvas.width / 2;
-            const centerY = offscreenCanvas.height / 2;
+            const centerX = stageW / 2;
+            const centerY = stageH / 2;
 
             for (let i = 0; i < bars; i++) {
                 const v = data[i];
-                let h = (v / 255) * (offscreenCanvas.height * 0.4) * sensitivity;
+                let h = (v / 255) * (stageH * 0.4) * sensitivity;
+                
+                // Peak drop logic calculation
+                if (h > peaks[i]) {
+                    peaks[i] = h;
+                    peakDropCounters[i] = 0; // Reset drop counter
+                } else {
+                    peakDropCounters[i]++;
+                    if (peakDropCounters[i] > 10) { // Delay before dropping
+                        peaks[i] -= (2 + peaks[i] * 0.05); // Gravity acceleration
+                        if (peaks[i] < 0) peaks[i] = 0;
+                    }
+                }
 
                 if (spectrumShape === 'linear') {
-                    const barW = offscreenCanvas.width / (isMirror ? bars * 2 : bars);
-                    const drawPositions = isMirror ? [offscreenCanvas.width/2 + i*barW, offscreenCanvas.width/2 - (i+1)*barW] : [i*barW];
+                    const barW = stageW / (isMirror ? bars * 2 : bars);
+                    const drawPositions = isMirror ? [stageW/2 + i*barW, stageW/2 - (i+1)*barW] : [i*barW];
 
                     drawPositions.forEach(currentX => {
                         const widthBar = barW - 1;
@@ -453,25 +530,28 @@
 
                         if (h > 0) {
                             ctx.fillStyle = currentFill;
-                            {
-                                if (barStyle === 'solid') {
-                                    ctx.fillRect(currentX, (direction === -1) ? baselineY - h : baselineY, widthBar, h);
-                                } else if (barStyle === 'led') {
-                                    const ledGap = 2; const ledHeight = 4; const totalLeds = Math.floor(h / (ledHeight + ledGap));
-                                    for (let j = 0; j < totalLeds; j++) {
-                                        const ledY = (direction === -1) ? baselineY - (j*(ledHeight+ledGap)) - ledHeight : baselineY + (j*(ledHeight+ledGap));
-                                        ctx.fillRect(currentX, ledY, widthBar, ledHeight);
-                                    }
-                                } else if (barStyle === 'dots') {
-                                    ctx.beginPath(); ctx.arc(currentX + widthBar/2, baselineY + (h * direction), Math.max(1, widthBar/2), 0, Math.PI * 2); ctx.fill();
+                            if (barStyle === 'solid') {
+                                ctx.fillRect(currentX, (direction === -1) ? baselineY - h : baselineY, widthBar, h);
+                            } else if (barStyle === 'led') {
+                                const ledGap = 2; const ledHeight = 4; const totalLeds = Math.floor(h / (ledHeight + ledGap));
+                                for (let j = 0; j < totalLeds; j++) {
+                                    const ledY = (direction === -1) ? baselineY - (j*(ledHeight+ledGap)) - ledHeight : baselineY + (j*(ledHeight+ledGap));
+                                    ctx.fillRect(currentX, ledY, widthBar, ledHeight);
                                 }
+                            } else if (barStyle === 'dots') {
+                                ctx.beginPath(); ctx.arc(currentX + widthBar/2, baselineY + (h * direction), Math.max(1, widthBar/2), 0, Math.PI * 2); ctx.fill();
                             }
                         }
-                        if (peaks[i] > 0) { ctx.fillStyle = '#ffcc00'; ctx.fillRect(currentX, baselineY + (peaks[i] * direction), widthBar, 1.5); }
+                        
+                        // Draw peaks
+                        if (showPeaks && peaks[i] > 0) { 
+                            ctx.fillStyle = '#ffcc00'; 
+                            ctx.fillRect(currentX, baselineY + (peaks[i] * direction), widthBar, 2); 
+                        }
                     });
 
                 } else if (spectrumShape === 'circle') {
-                    const baseRadius = Math.min(offscreenCanvas.width, offscreenCanvas.height) * 0.18;
+                    const baseRadius = Math.min(stageW, stageH) * 0.18;
                     const radius = baseRadius + (bass * 10); 
 
                     const angle = (i / bars) * Math.PI * 2 + imgRotation;
@@ -495,9 +575,13 @@
 
                     ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY); ctx.stroke();
 
-                    if (peaks[i] > 0) {
+                    // Draw peaks for circle
+                    if (showPeaks && peaks[i] > 0) {
                         const pRadius = (circleBarMode === 'inner') ? radius - peaks[i] - 3 : radius + peaks[i] + 3;
-                        ctx.fillStyle = '#ffcc00'; ctx.beginPath(); ctx.arc(centerX + cos * pRadius, centerY + sin * pRadius, ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill();
+                        ctx.fillStyle = '#ffcc00'; 
+                        ctx.beginPath(); 
+                        ctx.arc(centerX + cos * pRadius, centerY + sin * pRadius, ctx.lineWidth / 2, 0, Math.PI * 2); 
+                        ctx.fill();
                     }
 
                 } else if (spectrumShape === 'spiral') {
