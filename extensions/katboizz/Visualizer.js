@@ -542,12 +542,6 @@
                                 ctx.beginPath(); ctx.arc(currentX + widthBar/2, baselineY + (h * direction), Math.max(1, widthBar/2), 0, Math.PI * 2); ctx.fill();
                             }
                         }
-                        
-                        // Draw peaks
-                        if (showPeaks && peaks[i] > 0) { 
-                            ctx.fillStyle = '#ffcc00'; 
-                            ctx.fillRect(currentX, baselineY + (peaks[i] * direction), widthBar, 2); 
-                        }
                     });
 
                 } else if (spectrumShape === 'circle') {
@@ -575,14 +569,6 @@
 
                     ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY); ctx.stroke();
 
-                    // Draw peaks for circle
-                    if (showPeaks && peaks[i] > 0) {
-                        const pRadius = (circleBarMode === 'inner') ? radius - peaks[i] - 3 : radius + peaks[i] + 3;
-                        ctx.fillStyle = '#ffcc00'; 
-                        ctx.beginPath(); 
-                        ctx.arc(centerX + cos * pRadius, centerY + sin * pRadius, ctx.lineWidth / 2, 0, Math.PI * 2); 
-                        ctx.fill();
-                    }
 
                 } else if (spectrumShape === 'spiral') {
                     const spiralTightness = 1.4; 
