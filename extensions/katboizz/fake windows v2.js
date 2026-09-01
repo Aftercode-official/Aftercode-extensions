@@ -26,10 +26,6 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
     }, 100);
     throw new Error(MESSAGE);
   }
-   const DOOMcheck = (vm.runtime.ioDevices.userData._username === 'DOOM1997');
-  const searchParams = new URLSearchParams(globalThis.location.search);
-  const _hideInlineTextarea = !searchParams.has('MoreFields_InlineTextarea');
-  const padding = JSON.parse(localStorage['tw:addons'] || JSON.stringify(globalThis.scratchAddons ? scratchAddons.globalState.addonSettings : {'custom-block-shape': { cornerSize: 100, notchSize: 100, paddingSize: 100 }}))['custom-block-shape'] || { cornerSize: 100, notchSize: 100, paddingSize: 100 };
   const customFieldTypes = {};
   let Blockly = null;
   const _LDC = function _LightenDarkenColor(col, amt) {
