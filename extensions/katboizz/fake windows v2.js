@@ -817,15 +817,20 @@ class extensionAPI {
         let isDown = false;
         let offsetX = 0;
         let offsetY = 0;
-
+        handle.style.userSelect = 'none';
+        const iframe = win.querySelector('iframe');
         handle.addEventListener('mousedown', (e) => {
             isDown = true;
             offsetX = e.clientX - win.offsetLeft;
             offsetY = e.clientY - win.offsetTop;
+            if (iframe) iframe.style.pointerEvents = 'none';
+            e.preventDefault();
         });
 
-        document.addEventListener('mouseup', () => isDown = false);
-
+       document.addEventListener('mouseup', () => {
+        isDown = false;
+        if (iframe) iframe.style.pointerEvents = 'auto';
+    });
         document.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             win.style.left = (e.clientX - offsetX) + 'px';
