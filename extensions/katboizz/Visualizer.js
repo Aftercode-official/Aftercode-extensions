@@ -1,7 +1,8 @@
 // Name: Visualizer Pro
 // ID: Visualizer
 // Description: A real, optimized audio visualizer showing on your project.
-// By: katboizz (Improved version)
+// By: katboizz <https://scratch.mit.edu/users/katboizz/>
+// By: DANV
 // License: MIT
 (function (Scratch) {
     'use strict';
