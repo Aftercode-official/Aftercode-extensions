@@ -2,7 +2,7 @@
 // ID: Visualizer
 // Description: A real, optimized audio visualizer showing on your project.
 // By: katboizz <https://scratch.mit.edu/users/katboizz/>
-// By: DANV
+// By: DANV <https://scratch.mit.edu/users/officialDANV/>
 // License: MIT
 (function (Scratch) {
     'use strict';
