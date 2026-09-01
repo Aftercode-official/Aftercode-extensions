@@ -214,55 +214,6 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
       showEditor_() {
       }
     }
-    implementations.FieldInlineDoom = class FieldInlineDoom extends Blockly.Field {
-        showEditor_() {}
-        constructor(opt_value) {
-            opt_value = 'InlineDoom';
-            super(opt_value);
-            this.addArgType('String');
-            this.addArgType('InlineDoom');
-        }
-        updateWidth() {
-            this.size_.width = 650;
-            this.size_.height = 410;
-        }
-        dispose(...a) {
-            Blockly.Field.prototype.dispose.call(this, ...a);
-            if (this._fObj) this._fObj.remove();
-            delete this._fObj;
-        }
-        init(...initArgs) {
-            this.inlineDblRender = true;
-            Blockly.Field.prototype.init.call(this, ...initArgs);
-            this.textNode__ = this.sourceBlock_.svgPath_.parentNode.querySelector('g.blocklyEditableText text');
-            if (this.textNode__) {
-            this.textNode__.style.display = 'none';
-            if (this.sourceBlock_.parentBlock_) _fixColours.call(this, false, this.sourceBlock_.parentBlock_.colour_);
-            }
-            const fg_ = this.fieldGroup_;
-            if (!fg_) return;
-            const path = fg_?.previousElementSibling;
-            if (path?.nodeName !== 'path') return;
-            const fObj = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-            fObj.setAttribute('width', '650');
-            fObj.setAttribute('height', '410');
-            fObj.setAttribute('x', '0');
-            fObj.setAttribute('y', '0');
-            this._fObj = fObj;
-            this.fg_ = fg_;
-            if (this.fieldGroup_) this.fieldGroup_.insertAdjacentElement('afterend', fObj);
-            this._addDOOM();
-        }
-        _addDOOM() {
-            const frame = document.createElement('iframe');
-            frame.width = 640;
-            frame.height = 400;
-            frame.id = 'DOOM';
-            this._fObj.appendChild(frame);
-            frame.srcdoc = atob(`PCEtLSBPUklHSU5BTDogaHR0cHM6Ly9kaWVrbWFubi5naXRodWIuaW8vd2FzbS1maXp6YnV6ei9kb29tLyAtLT48IWRvY3R5cGVodG1sPjxodG1sPjxib2R5PjxET09NPjxzdHlsZT4jb3V0cHV0e2JvcmRlcjozcHggZ3Jvb3ZlICM3ZmZmZDQ7YmFja2dyb3VuZC1jb2xvcjpiaXNxdWU7d2lkdGg6NTUwcHg7aGVpZ2h0OjQwMHB4O2ZvbnQtZmFtaWx5Om1vbm9zcGFjZSxzZXJpZjtmb250LXNpemU6MTBweDtvdmVyZmxvdy15OnNjcm9sbH0jb3V0cHV0IHNwYW4ubG9ne2NvbG9yOiM0ODNkOGJ9I291dHB1dCBzcGFuLnN0ZG91dHtjb2xvcjojMDAwfSNvdXRwdXQgc3Bhbi5zdGRlcnJ7Zm9udC13ZWlnaHQ6NzAwO2NvbG9yOmJyb3dufS5jb250YWluZXJ7ZGlzcGxheTpmbGV4fSp7bWFyZ2luOjBweDtwYWRkaW5nOjBweH08L3N0eWxlPjxzcGFuIGhpZGRlbj48cCBpZD1mb2N1c2hpbnQ+PC9wPjxwPjxidXR0b24gaWQ9ZW50ZXJCdXR0b24+PC9idXR0b24+PGJ1dHRvbiBpZD1sZWZ0QnV0dG9uPjwvYnV0dG9uPjxidXR0b24gaWQ9dXBCdXR0b24+PC9idXR0b24+PGJ1dHRvbiBpZD1kb3duQnV0dG9uPjwvYnV0dG9uPjxidXR0b24gaWQ9cmlnaHRCdXR0b24+PC9idXR0b24+IDxidXR0b24gaWQ9Y3RybEJ1dHRvbj48L2J1dHRvbj48YnV0dG9uIGlkPXNwYWNlQnV0dG9uPjwvYnV0dG9uPiA8YnV0dG9uIGlkPWFsdEJ1dHRvbj48L2J1dHRvbj48L3A+PC9zcGFuPjxkaXYgY2xhc3M9Y29udGFpbmVyPjxjYW52YXMgaGVpZ2h0PTQwMCBpZD1zY3JlZW4gdGFiaW5kZXg9MCB3aWR0aD02NDA+VGhpcyBpcyB3aGVyZSB0aGUgRG9vTSBzY3JlZW4gc2hvdWxkIHJlbmRlci48L2NhbnZhcz48ZGl2IGhpZGRlbiBpZD1vdXRwdXQ+PC9kaXY+PC9kaXY+PHNwYW4gaGlkZGVuPjxzcGFuIGlkPWdldG1zcHNfc3RhdHM+PC9zcGFuPjxzcGFuIGlkPWdldG1zX3N0YXRzPjwvc3Bhbj4gPHNwYW4gaWQ9ZnBzX3N0YXRzPjwvc3Bhbj48c3BhbiBpZD1kcmF3ZnJhbWVzX3N0YXRzPjwvc3Bhbj4gPHNwYW4gaWQ9YW5pbWF0aW9uZnBzX3N0YXRzPjwvc3Bhbj48L3NwYW4+PHNjcmlwdCBkZWZlcj4idXNlIHN0cmljdCI7dmFyIG1lbW9yeT1uZXcgV2ViQXNzZW1ibHkuTWVtb3J5KHtpbml0aWFsOjEwOH0pO2NvbnN0IG91dHB1dD1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgib3V0cHV0Iik7ZnVuY3Rpb24gcmVhZFdhc21TdHJpbmcodCxlKXtsZXQgbj1uZXcgVWludDhBcnJheShtZW1vcnkuYnVmZmVyLHQsZSk7cmV0dXJuIG5ldyBUZXh0RGVjb2RlcigidXRmOCIpLmRlY29kZShuKX1mdW5jdGlvbiBjb25zb2xlTG9nU3RyaW5nKHQsZSl7bGV0IG49cmVhZFdhc21TdHJpbmcodCxlKTtjb25zb2xlLmxvZygnIicrbisnIicpfWZ1bmN0aW9uIGFwcGVuZE91dHB1dCh0KXtyZXR1cm4gZnVuY3Rpb24oZSxuKXtsZXQgcz1yZWFkV2FzbVN0cmluZyhlLG4pLnNwbGl0KCJcbiIpO2Zvcih2YXIgYT0wO2E8cy5sZW5ndGg7KythKWlmKDAhPXNbYV0ubGVuZ3RoKXt2YXIgcj1kb2N1bWVudC5jcmVhdGVFbGVtZW50KCJzcGFuIik7ci5jbGFzc0xpc3QuYWRkKHQpLHIuYXBwZW5kQ2hpbGQoZG9jdW1lbnQuY3JlYXRlVGV4dE5vZGUoc1thXSkpLG91dHB1dC5hcHBlbmRDaGlsZChyKSxvdXRwdXQuYXBwZW5kQ2hpbGQoZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgiYnIiKSksci5zY3JvbGxJbnRvVmlldyh7YmVoYXZpb3I6InNtb290aCIsYmxvY2s6ImVuZCIsaW5saW5lOiJuZWFyZXN0In0pfX19Y29uc3QgZ2V0bXNwc19zdGF0cz1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiZ2V0bXNwc19zdGF0cyIpLGdldG1zX3N0YXRzPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJnZXRtc19zdGF0cyIpO3ZhciBnZXRtc19jYWxsc190b3RhbD0wLGdldG1zX2NhbGxzPTA7ZnVuY3Rpb24gZ2V0TWlsbGlzZWNvbmRzKCl7cmV0dXJuKytnZXRtc19jYWxscyxwZXJmb3JtYW5jZS5ub3coKX13aW5kb3cuc2V0SW50ZXJ2YWwoZnVuY3Rpb24oKXtnZXRtc19jYWxsc190b3RhbCs9Z2V0bXNfY2FsbHMsZ2V0bXNwc19zdGF0cy5pbm5lclRleHQ9Z2V0bXNfY2FsbHMvMWUzKyJrIixnZXRtc19zdGF0cy5pbm5lclRleHQ9Z2V0bXNfY2FsbHNfdG90YWwsZ2V0bXNfY2FsbHM9MH0sMWUzKTtjb25zdCBjYW52YXM9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInNjcmVlbiIpLGRvb21fc2NyZWVuX3dpZHRoPTY0MCxkb29tX3NjcmVlbl9oZWlnaHQ9NDAwLGZwc19zdGF0cz1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiZnBzX3N0YXRzIiksZHJhd2ZyYW1lc19zdGF0cz1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiZHJhd2ZyYW1lc19zdGF0cyIpO3ZhciBudW1iZXJfb2ZfZHJhd3NfdG90YWw9MCxudW1iZXJfb2ZfZHJhd3M9MDtmdW5jdGlvbiBkcmF3Q2FudmFzKHQpe3ZhciBlPW5ldyBVaW50OENsYW1wZWRBcnJheShtZW1vcnkuYnVmZmVyLHQsMTAyNGUzKSxuPW5ldyBJbWFnZURhdGEoZSw2NDAsNDAwKTtjYW52YXMuZ2V0Q29udGV4dCgiMmQiKS5wdXRJbWFnZURhdGEobiwwLDApLCsrbnVtYmVyX29mX2RyYXdzfXdpbmRvdy5zZXRJbnRlcnZhbChmdW5jdGlvbigpe251bWJlcl9vZl9kcmF3c190b3RhbCs9bnVtYmVyX29mX2RyYXdzLGRyYXdmcmFtZXNfc3RhdHMuaW5uZXJUZXh0PW51bWJlcl9vZl9kcmF3c190b3RhbCxmcHNfc3RhdHMuaW5uZXJUZXh0PW51bWJlcl9vZl9kcmF3cyxudW1iZXJfb2ZfZHJhd3M9MH0sMWUzKTt2YXIgaW1wb3J0T2JqZWN0PXtqczp7anNfY29uc29sZV9sb2c6YXBwZW5kT3V0cHV0KCJsb2ciKSxqc19zdGRvdXQ6YXBwZW5kT3V0cHV0KCJzdGRvdXQiKSxqc19zdGRlcnI6YXBwZW5kT3V0cHV0KCJzdGRlcnIiKSxqc19taWxsaXNlY29uZHNfc2luY2Vfc3RhcnQ6Z2V0TWlsbGlzZWNvbmRzLGpzX2RyYXdfc2NyZWVuOmRyYXdDYW52YXN9LGVudjp7bWVtb3J5Om1lbW9yeX19O1dlYkFzc2VtYmx5Lmluc3RhbnRpYXRlU3RyZWFtaW5nKGZldGNoKCJodHRwczovL21peW8ubG9sL2Rvb20ud2FzbSIpLGltcG9ydE9iamVjdCkudGhlbih0PT57dC5pbnN0YW5jZS5leHBvcnRzLm1haW4oKTtsZXQgZT1mdW5jdGlvbih0KXtzd2l0Y2godCl7Y2FzZSA4OnJldHVybiAxMjc7Y2FzZSAxNzpyZXR1cm4gMTU3O2Nhc2UgMTg6cmV0dXJuIDE4NDtjYXNlIDM3OnJldHVybiAxNzI7Y2FzZSAzODpyZXR1cm4gMTczO2Nhc2UgMzk6cmV0dXJuIDE3NDtjYXNlIDQwOnJldHVybiAxNzU7ZGVmYXVsdDppZih0Pj02NSYmdDw9OTApcmV0dXJuIHQrMzI7aWYodD49MTEyJiZ0PD0xMjMpcmV0dXJuIHQrNzU7cmV0dXJuIHR9fSxuPWZ1bmN0aW9uKGUpe3QuaW5zdGFuY2UuZXhwb3J0cy5hZGRfYnJvd3Nlcl9ldmVudCgwLGUpfSxzPWZ1bmN0aW9uKGUpe3QuaW5zdGFuY2UuZXhwb3J0cy5hZGRfYnJvd3Nlcl9ldmVudCgxLGUpfTtjYW52YXMuYWRkRXZlbnRMaXN0ZW5lcigia2V5ZG93biIsZnVuY3Rpb24odCl7bihlKHQua2V5Q29kZSkpLHQucHJldmVudERlZmF1bHQoKX0sITEpLGNhbnZhcy5hZGRFdmVudExpc3RlbmVyKCJrZXl1cCIsZnVuY3Rpb24odCl7cyhlKHQua2V5Q29kZSkpLHQucHJldmVudERlZmF1bHQoKX0sITEpLFtbImVudGVyQnV0dG9uIiwxM10sWyJsZWZ0QnV0dG9uIiwxNzJdLFsicmlnaHRCdXR0b24iLDE3NF0sWyJ1cEJ1dHRvbiIsMTczXSxbImRvd25CdXR0b24iLDE3NV0sWyJjdHJsQnV0dG9uIiwxNTddLFsic3BhY2VCdXR0b24iLDMyXSxbImFsdEJ1dHRvbiIsMTg0XV0uZm9yRWFjaCgoW3QsZV0pPT57Y29uc29sZS5sb2codCsiIGZvciAiK2UpO3ZhciBhPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKHQpO2EuYWRkRXZlbnRMaXN0ZW5lcigidG91Y2hzdGFydCIsKCk9Pm4oZSkpLGEuYWRkRXZlbnRMaXN0ZW5lcigidG91Y2hlbmQiLCgpPT5zKGUpKSxhLmFkZEV2ZW50TGlzdGVuZXIoInRvdWNoY2FuY2VsIiwoKT0+cyhlKSl9KTtsZXQgYT1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiZm9jdXNoaW50Iikscj1mdW5jdGlvbih0KXthLmlubmVyVGV4dD0iS2V5Ym9hcmQgZXZlbnRzIHdpbGwgYmUgY2FwdHVyZWQgYXMgbG9uZyBhcyB0aGUgdGhlIERPT00gY2FudmFzIGhhcyBmb2N1cy4iLGEuc3R5bGUuZm9udFdlaWdodD0ibm9ybWFsIn07Y2FudmFzLmFkZEV2ZW50TGlzdGVuZXIoImZvY3VzaW4iLHIsITEpLGNhbnZhcy5hZGRFdmVudExpc3RlbmVyKCJmb2N1c291dCIsZnVuY3Rpb24odCl7YS5pbm5lclRleHQ9IkNsaWNrIG9uIHRoZSBjYW52YXMgdG8gY2FwdXRlIGlucHV0IGFuZCBzdGFydCBwbGF5aW5nLiIsYS5zdHlsZS5mb250V2VpZ2h0PSJib2xkIn0sITEpLGNhbnZhcy5mb2N1cygpLHIoKTtsZXQgbz1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiYW5pbWF0aW9uZnBzX3N0YXRzIik7dmFyIHU9MDtmdW5jdGlvbiBjKGUpeysrdSx0Lmluc3RhbmNlLmV4cG9ydHMuZG9vbV9sb29wX3N0ZXAoKSx3aW5kb3cucmVxdWVzdEFuaW1hdGlvbkZyYW1lKGMpfXdpbmRvdy5zZXRJbnRlcnZhbChmdW5jdGlvbigpe28uaW5uZXJUZXh0PXUsdT0wfSwxZTMpLHdpbmRvdy5yZXF1ZXN0QW5pbWF0aW9uRnJhbWUoYyl9KTs8L3NjcmlwdD48L0RPT00+PC9ib2R5PjwvaHRtbD4=`);
-        }
-        }
-        gotBlockly._registerFields();
     }
     gotBlockly._on = new Set();
   gotBlockly.when = function(callback) {
