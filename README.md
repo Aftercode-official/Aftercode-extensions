@@ -1,4 +1,4 @@
-# TurboWarp Extension Gallery
+# Aftercode Extension Gallery
 
 User-contributed unsandboxed extension gallery for TurboWarp.
 
