@@ -757,45 +757,57 @@ class extensionAPI {
     const id = String(args.ID);
     if (this.windows[id]) return;
     const htmlCode = String(args.TEXT);
-    const iframe = document.createElement('iframe');
-   
-        iframe.style.position = 'fixed';
-        iframe.style.left = '460px';
-        iframe.style.top = '120px';
-        iframe.style.width = '400px';
-        iframe.style.height = '300px';
-        iframe.style.background = 'white';
-        iframe.style.border = '1px solid #555';
-        iframe.style.boxShadow = '0 5px 20px rgba(0,0,0,0.4)';
-        iframe.style.zIndex = this.zIndexCounter++;
-        iframe.style.display = 'flex';
-        iframe.style.flexDirection = 'column';
-        iframe.style.overflow = 'hidden';
+
     
+    const win = document.createElement('div');
+    win.style.position = 'fixed';
+    win.style.left = '460px';
+    win.style.top = '120px';
+    win.style.width = '400px';
+    win.style.height = '300px';
+    win.style.background = 'white';
+    win.style.border = '1px solid #555';
+    win.style.boxShadow = '0 5px 20px rgba(0,0,0,0.4)';
+    win.style.zIndex = this.zIndexCounter++;
+    win.style.display = 'flex';
+    win.style.flexDirection = 'column';
+    win.style.overflow = 'hidden';
+
+    
+    const titleBar = document.createElement('div');
+    titleBar.style.height = '30px';
+    titleBar.style.background = '#2ECC71';
+    titleBar.style.cursor = 'move';
+    titleBar.style.display = 'flex';
+    titleBar.style.alignItems = 'center';
+    titleBar.style.justifyContent = 'space-between';
+    titleBar.style.padding = '0 8px';
+    titleBar.style.color = 'white';
+    titleBar.textContent = id;
+
+    const closeBtn = document.createElement('span');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => this.closeWindow({ ID: id });
+    titleBar.appendChild(closeBtn);
+
+    
+    const iframe = document.createElement('iframe');
+    iframe.style.flex = '1';
+    iframe.style.border = 'none';
+    iframe.style.width = '100%';
     iframe.sandbox = 'allow-scripts allow-modals allow-same-origin';
     iframe.srcdoc = htmlCode;
 
-    
-    const closeBtn = document.createElement('span');
-    Object.assign(closeBtn.style, {
-        position: 'fixed',
-        cursor: 'pointer',
-        zIndex: String(this.zIndexCounter + 1),
-        background: '#333',
-        color: '#fff',
-        padding: '2px 6px',
-        borderRadius: '4px'
-    });
-    closeBtn.onclick = () => {
-        iframe.remove();
-        closeBtn.remove();
-        this.activeHtmlFrame = null;
-    };
+    win.appendChild(titleBar);
+    win.appendChild(iframe);
+    document.body.appendChild(win);
 
-    document.body.appendChild(iframe);
+    this.makeDraggable(win, titleBar); 
+
     this.activeHtmlFrame = iframe;
     this.windows[id] = {
-        element: iframe,
+        element: win,   
         canvas: null,
         sprite: null
     };
