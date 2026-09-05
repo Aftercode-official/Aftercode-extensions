@@ -1,4 +1,4 @@
-// Name: Web Screen
+// Name: Web Screen beta
 // ID: webscreen
 // Description: Extension Web Screen allows an Aftercode project to display text and characters over the entire web page.
 // By: _kitty-the-cat_ <https://scratch.mit.edu/users/_kitty-the-cat_/>
