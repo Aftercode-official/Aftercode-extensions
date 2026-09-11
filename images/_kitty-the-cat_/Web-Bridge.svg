@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <!-- Background diagonal stripes pattern -->
+    <pattern id="stripes" width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect x="0" y="0" width="60" height="120" fill="#9ee2f7" />
+      <rect x="60" y="0" width="60" height="120" fill="#7fd3f0" />
+    </pattern>
+
+    <!-- Subtle drop shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#1b7593" flood-opacity="0.2" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#stripes)" />
+
+  <!-- Browser Window -->
+  <g filter="url(#shadow)">
+    <!-- Outer Frame -->
+    <rect x="180" y="35" width="440" height="380" rx="28" ry="28" fill="#44b4e3" />
+
+    <!-- Inner Window area -->
+    <rect x="194" y="102" width="412" height="300" rx="16" ry="16" fill="#81e0f7" />
+
+    <!-- Address Bar -->
+    <rect x="240" y="52" width="320" height="38" rx="6" ry="6" fill="#9de8fb" />
+
+    <!-- Address Bar Text -->
+    <text x="400" y="77" font-family="'Courier New', Courier, monospace, sans-serif" font-size="21" font-weight="bold" fill="#31a2d6" text-anchor="middle" letter-spacing="1">https://...</text>
+
+    <!-- Face Elements -->
+    <g fill="#009bd9">
+      <!-- Eyes -->
+      <rect x="330" y="158" width="36" height="26" rx="3" ry="3" />
+      <rect x="434" y="158" width="36" height="26" rx="3" ry="3" />
+
+      <!-- Cute Mouth (:3) -->
+      <path d="M 324 235 
+               C 324 295, 392 295, 400 248 
+               C 408 295, 476 295, 476 235" 
+            fill="none" 
+            stroke="#009bd9" 
+            stroke-width="20" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" />
+    </g>
+  </g>
+</svg>
