@@ -1,6 +1,6 @@
-// Name: css style
+// Name: css filter style
 // ID: katcss
-// Description: custom css for project page
+// Description: custom css filter for project page
 // By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // License: MIT
 (function(scratch) {
