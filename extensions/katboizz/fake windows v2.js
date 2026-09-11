@@ -1,4 +1,5 @@
 // Name: Fake windows v2
+// ID: FakeWindowsv2
 // Description: create a fake window in your project page
 // By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // License: MIT

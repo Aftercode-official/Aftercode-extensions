@@ -1,7 +1,8 @@
-// name: css style
-// description: custom css for project page
+// Name: css style
+// ID: katcss
+// Description: custom css for project page
 // By: katboizz <https://scratch.mit.edu/users/katboizz/>
-// license: MIT
+// License: MIT
 (function(scratch) {
 
   'use strict';

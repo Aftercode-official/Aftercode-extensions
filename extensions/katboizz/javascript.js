@@ -1,7 +1,7 @@
-//  name: javascript
-//  version: 1.0
-//  description: javascript code editor and runner for scratch
-// By: katboizz <https://scratch.mit.edu/users/katboizz/>
+//  Name: javascript 
+//  ID: jscodeextension
+//  Description: javascript code editor and runner for scratch
+//  By: katboizz <https://scratch.mit.edu/users/katboizz/>
 //  License: MIT
 
 (function (Scratch) {
