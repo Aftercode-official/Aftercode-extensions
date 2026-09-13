@@ -539,7 +539,7 @@ void main() {
       u_flipY: [-Infinity, Infinity],
       u_flipZ: [-Infinity, Infinity],
 
-      u_glow: [0, 1000],
+      u_glow: [0, Infinity],
       u_invert: [0, 100],
       u_glitch: [0, 100],
       u_glitchX: [0, 100],
@@ -598,7 +598,7 @@ void main() {
             text: "set effect [EFFECT] by [VALUE]",
             arguments: {
               EFFECT: { menu: "effectsMenu", defaultValue: "u_glow" },
-              VALUE: { type: Scratch.ArgumentType.NUMBER, defaultValue: 50 }
+              VALUE: { type: Scratch.ArgumentType.NUMBER, defaultValue: 10 }
             }
           },
           {
@@ -607,7 +607,7 @@ void main() {
             text: "Change effect [EFFECT] by [VALUE]",
             arguments: {
               EFFECT: { menu: "effectsMenu", defaultValue: "u_glow" },
-              VALUE: { type: Scratch.ArgumentType.NUMBER, defaultValue: 10 }
+              VALUE: { type: Scratch.ArgumentType.NUMBER, defaultValue: 25 }
             }
           },
           "---",
@@ -663,7 +663,6 @@ void main() {
               { text: "flip depth", value: "u_flipZ" },
               { text: "Glow", value: "u_glow" },
               { text: "Invert", value: "u_invert" },
-              { text: "glitch", value: "u_glitch" },
               { text: "glitch x", value: "u_glitchX" },
               { text: "glitch y", value: "u_glitchY" },
               { text: "outline", value: "u_outline" },
