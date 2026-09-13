@@ -148,8 +148,8 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
           this.size_.width = width - BlockSvg.NOTCH_START_PADDING + 2 * BlockSvg.NOTCH_START_PADDING / 3;
           this.size_.height = height + BlockSvg.NOTCH_HEIGHT + 1.5 + BlockSvg.NOTCH_START_PADDING / 3;
         } else {
-          this.size_.width = this._FakeWidth || 40;
-          this.size_.height = this._FakeHeight || 24;
+          this.size_.width = this._FakeWidth || 300;
+          this.size_.height = this._FakeHeight || 150;
         }
       }
       dispose() {
@@ -163,8 +163,8 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
           this.textNode__.style.display = 'none';
           _fixColours.call(this, false, this.sourceBlock_.parentBlock_.colour_);
         }
-        this._FakeWidth ??= 40;
-        this._FakeHeight ??= 24;
+        this._FakeWidth ??= 300;
+        this._FakeHeight ??= 150;
         const textareaHolder = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
         textareaHolder.setAttribute('style', 'color-scheme: Dark; color: #e06c75;');
         textareaHolder.addEventListener('keydown', (e) => {
@@ -187,6 +187,8 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
         textareaHolder.addEventListener('mousedown', (e) => e.stopPropagation());
         const textarea = document.createElement('textarea');
         textarea.value = this.getValue() ?? '';
+        textarea.style.width = '300px';
+        textarea.style.height = '150px';
         textarea.addEventListener('input', () => this._onInput());
         textarea.addEventListener('mouseup', () => this._resizeHolder());
         if (this.fieldGroup_) {
@@ -487,7 +489,7 @@ class extensionAPI {
 
                 {
                     blockType: BlockType.XML,
-                    xml: '<sep gap="46" />',
+                    xml: '<sep gap="140" />',
                 },
 
                 {
@@ -532,13 +534,17 @@ class extensionAPI {
                 },
 
                 {
-                opcode: 'getWindowPosition',
-                blockType: Scratch.BlockType.REPORTER,
-                text: 'get window [ID] position',
-                arguments: {
-                    ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                }
-              },
+                    opcode: 'getWindowPosition',
+                    blockType: Scratch.BlockType.REPORTER,
+                    text: 'get window [ID] position [AXIS]',
+                    arguments: {
+                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+                        AXIS: {
+                            type: Scratch.ArgumentType.STRING,
+                            menu: 'axisMenu'
+                        }
+                    }
+                },
               
 
                 {
@@ -556,6 +562,13 @@ class extensionAPI {
                     items: [
                         { text: 'normal', value: 'normal' },
                         { text: 'frameless', value: 'frameless' }
+                    ]
+                },
+                axisMenu: {
+                    acceptReporters: true,
+                    items: [
+                        { text: 'x', value: 'x' },
+                        { text: 'y', value: 'y' }
                     ]
                 }
             },
@@ -744,7 +757,6 @@ class extensionAPI {
     iframe.style.flex = '1';
     iframe.style.border = 'none';
     iframe.style.width = '100%';
-    iframe.sandbox = 'allow-scripts allow-modals allow-same-origin';
     iframe.srcdoc = htmlCode;
 
     win.appendChild(titleBar);
@@ -791,9 +803,12 @@ class extensionAPI {
     }
 
     getWindowPosition(args){
-        const data = this.windows[String(args.ID)];
-        if (!data) return '';
-        return `${"X: "+data.element.offsetLeft},${"Y: "+data.element.offsetTop}`;
+    const data = this.windows[String(args.ID)];
+    if (!data) return '';
+    const axis = String(args.AXIS).toLowerCase();
+    if (axis === 'x') return data.element.offsetLeft;
+    if (axis === 'y') return data.element.offsetTop;
+    return `${"X: "+data.element.offsetLeft},${"Y: "+data.element.offsetTop}`;
     }
 }
 const inst = runtime[`ext_${extId}`] = new extension();
