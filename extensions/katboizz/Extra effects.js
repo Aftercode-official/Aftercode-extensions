@@ -510,6 +510,7 @@ void main() {
     };
 
     maxRanges = {
+      u_fisheye: [Infinity,Infinity],
       u_saturation: [-100, 100],
       u_posterize: [1, 100],
       u_contrast: [0, 200],
