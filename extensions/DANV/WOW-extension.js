@@ -1,7 +1,7 @@
 // Name: DANV WOW Economy
 // ID: danvWowEconomy
 // Description: Tích hợp hệ thống tiền tệ năng lượng WOW của DANVworkshop vào game
-// By: StudioDANV
+// By: StudioDANV <https://turbows.pages.dev/users/StudioDANV>
 
 (function (Scratch) {
   "use strict";
