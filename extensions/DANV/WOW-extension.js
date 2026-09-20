@@ -1,16 +1,13 @@
 // Name: DANV WOW Economy
 // ID: danvWowEconomy
 // Description: Tích hợp hệ thống tiền tệ năng lượng WOW của DANVworkshop vào game
-// By: StudioDANV <https://turbows.pages.dev/users/StudioDANV>
-// License: MIT
+// By: StudioDANV
 
 (function (Scratch) {
   "use strict";
 
-  // Biểu tượng icon WOW năng lượng vàng
   const WOW_ICON_URL = "https://raw.githubusercontent.com/danvPR/workshop/main/Assets/WOW%20Badge.png";
 
-  // Danh sách các domain cha được phép tin cậy
   const TRUSTED_PARENT_ORIGINS = [
     "https://turbows.pages.dev",
     "https://danvpr.github.io",
@@ -18,18 +15,19 @@
     "http://127.0.0.1:5500"
   ];
 
-  // Trạng thái cục bộ của ví và giao dịch
+  const COOLDOWN_MS = 5000;
+
   let userBalance = 0;
   let isLoggedIn = false;
   let currentUsername = "";
   let lastTxStatus = "NONE";
   let lastTxId = "";
-  let lastRequestTime = 0; // Đã sửa lỗi biến chưa khai báo
 
-  // Bản đồ quản lý các lệnh thanh toán đang chờ phản hồi từ trang web cha
+  let lastSyncTime = 0;
+  let lastRequestTime = 0;
+
   const pendingPaymentResolvers = new Map();
 
-  // Kiểm tra xem game có đang được nhúng trong iframe hay không
   function isEmbedded() {
     try {
       return window.self !== window.top;
@@ -38,46 +36,41 @@
     }
   }
 
-  // 1. GỬI TÍN HIỆU BẮT TAY (HANDSHAKE) LÊN TRANG WEB CHA
   function sendHandshake() {
     if (!isEmbedded()) return;
     window.parent.postMessage({ type: "DANV_WOW_HANDSHAKE" }, "*");
   }
 
-  // Khởi động bắt tay ngay khi nạp extension
+  lastSyncTime = Date.now();
   sendHandshake();
 
-  // 2. LẮNG NGHE TÍN HIỆU PHẢN HỒI TỪ TRANG WEB CHA (DANVWORKSHOP)
   window.addEventListener("message", (event) => {
-    // Chỉ chấp nhận tin nhắn từ các domain tin cậy của bạn
-    const isAllowedOrigin = TRUSTED_PARENT_ORIGINS.some(origin => event.origin.startsWith(origin));
+    const isAllowedOrigin = TRUSTED_PARENT_ORIGINS.includes(event.origin);
     if (!isAllowedOrigin) return;
 
     const data = event.data;
-    if (!data || !data.type) return;
+    if (!data || typeof data !== "object" || !data.type) return;
 
-    // A. NHẬN DỮ LIỆU ĐỒNG BỘ BAN ĐẦU
     if (data.type === "DANV_WOW_INIT") {
       isLoggedIn = !!data.isLoggedIn;
-      currentUsername = data.username || "";
-      userBalance = parseInt(data.balance) || 0;
+      currentUsername = String(data.username || "");
+      userBalance = parseInt(data.balance, 10) || 0;
     }
 
-    // B. NHẬN KẾT QUẢ THANH TOÁN TỪ MODAL TRANG CHA
     if (data.type === "DANV_WOW_PAY_RESPONSE") {
       const resolverObj = pendingPaymentResolvers.get(data.requestId);
       if (resolverObj) {
-        // Xóa bộ hẹn giờ timeout chống treo
         clearTimeout(resolverObj.timer);
 
         lastTxStatus = data.status || "FAILED";
 
         if (data.status === "SUCCESS") {
-          userBalance = parseInt(data.newBalance);
-          lastTxId = data.txId || "";
-          resolverObj.resolve(true); // Mở khóa block: Trả về thành công
+          userBalance = parseInt(data.newBalance, 10) || 0;
+          lastTxId = String(data.txId || "");
+          resolverObj.resolve(true);
         } else {
-          resolverObj.resolve(false); // Mở khóa block: Trả về thất bại / hủy bỏ
+          lastTxId = "";
+          resolverObj.resolve(false);
         }
 
         pendingPaymentResolvers.delete(data.requestId);
@@ -85,42 +78,80 @@
     }
   });
 
-  // 3. ĐĂNG KÝ BỘ KHỐI LỆNH SCRATCH TRONG AFTERCODE
+  if (Scratch.translate && Scratch.translate.setup) {
+    Scratch.translate.setup({
+      vi: {
+        "danv.policy": "Chính sách về WOW",
+        "danv.homepage": "Trang chủ DANVworkshop",
+        "danv.checkLoggedIn": "đã kết nối tài khoản DANV?",
+        "danv.getUsername": "tên người chơi DANV",
+        "danv.getBalance": "số dư WOW hiện tại",
+        "danv.requestPayment": "yêu cầu thanh toán [AMOUNT] WOW lý do: [REASON] và chờ",
+        "danv.defaultReason": "Mua vật phẩm",
+        "danv.isLastTxSuccess": "giao dịch gần nhất thành công?",
+        "danv.getLastTxStatus": "trạng thái giao dịch gần nhất",
+        "danv.getLastTxId": "mã giao dịch (TX ID) gần nhất",
+        "danv.syncBalanceNow": "đồng bộ lại số dư ví với hệ thống",
+        "danv.guest": "Khách"
+      }
+    });
+  }
+
+  function msg(id, vi, en) {
+    if (typeof Scratch.translate === "function") {
+      const res = Scratch.translate({ id: id, default: en });
+      if (res === en) {
+        const lang = (Scratch.translate.language || navigator.language || "").toLowerCase();
+        if (lang.startsWith("vi")) return vi;
+      }
+      return res;
+    }
+    const lang = (navigator.language || "").toLowerCase();
+    return lang.startsWith("vi") ? vi : en;
+  }
+
   class DANVWowEconomyExtension {
     getInfo() {
       return {
         id: "danvWowEconomy",
         name: "WOW Economy",
-        color1: "#f59e0b", // Vàng cam năng lượng
+        color1: "#f59e0b",
         color2: "#d97706",
         color3: "#b45309",
         blockIconURI: WOW_ICON_URL,
         menuIconURI: WOW_ICON_URL,
         blocks: [
-          // Block 1: Kiểm tra trạng thái kết nối
+          {
+            blockType: Scratch.BlockType.BUTTON,
+            text: msg("danv.policy", "Chính sách về WOW", "WOW Policy"),
+            func: "openPrivacyPolicy"
+          },
+          {
+            blockType: Scratch.BlockType.BUTTON,
+            text: msg("danv.homepage", "Trang chủ DANVworkshop", "DANVworkshop Homepage"),
+            func: "openHomePage"
+          },
+          "---",
           {
             opcode: "checkLoggedIn",
             blockType: Scratch.BlockType.BOOLEAN,
-            text: "đã kết nối tài khoản DANV?"
+            text: msg("danv.checkLoggedIn", "đã kết nối tài khoản DANV?", "connected to DANV account?")
           },
-          // Block 2: Lấy tên người chơi đang đăng nhập
           {
             opcode: "getUsername",
             blockType: Scratch.BlockType.REPORTER,
-            text: "tên người chơi DANV"
+            text: msg("danv.getUsername", "tên người chơi DANV", "DANV player name")
           },
-          // Block 3: Lấy số dư WOW
           {
             opcode: "getBalance",
             blockType: Scratch.BlockType.REPORTER,
-            text: "số dư WOW hiện tại"
+            text: msg("danv.getBalance", "số dư WOW hiện tại", "current WOW balance")
           },
           "---",
-          // Block 4: Yêu cầu thanh toán (Block có tính năng chờ Modal cha phản hồi)
           {
             opcode: "requestPaymentAndWait",
             blockType: Scratch.BlockType.COMMAND,
-            text: "yêu cầu thanh toán [AMOUNT] WOW lý do: [REASON] và chờ",
+            text: msg("danv.requestPayment", "yêu cầu thanh toán [AMOUNT] WOW lý do: [REASON] và chờ", "request payment of [AMOUNT] WOW for: [REASON] and wait"),
             arguments: {
               AMOUNT: {
                 type: Scratch.ArgumentType.NUMBER,
@@ -128,34 +159,30 @@
               },
               REASON: {
                 type: Scratch.ArgumentType.STRING,
-                defaultValue: "Mua vật phẩm"
+                defaultValue: msg("danv.defaultReason", "Mua vật phẩm", "In-game item")
               }
             }
           },
-          // Block 5: Boolean kiểm tra giao dịch gần nhất
           {
             opcode: "isLastTxSuccess",
             blockType: Scratch.BlockType.BOOLEAN,
-            text: "giao dịch gần nhất thành công?"
+            text: msg("danv.isLastTxSuccess", "giao dịch gần nhất thành công?", "last transaction successful?")
           },
-          // Block 6: Trạng thái giao dịch dạng chữ (SUCCESS, USER_CANCELLED, INSUFFICIENT,...)
           {
             opcode: "getLastTxStatus",
             blockType: Scratch.BlockType.REPORTER,
-            text: "trạng thái giao dịch gần nhất"
+            text: msg("danv.getLastTxStatus", "trạng thái giao dịch gần nhất", "last transaction status")
           },
-          // Block 7: Mã hóa đơn / Transaction ID
           {
             opcode: "getLastTxId",
             blockType: Scratch.BlockType.REPORTER,
-            text: "mã giao dịch (TX ID) gần nhất"
+            text: msg("danv.getLastTxId", "mã giao dịch (TX ID) gần nhất", "last transaction ID")
           },
           "---",
-          // Block 8: Đồng bộ làm mới số dư thủ công
           {
             opcode: "syncBalanceNow",
             blockType: Scratch.BlockType.COMMAND,
-            text: "đồng bộ lại số dư ví với hệ thống"
+            text: msg("danv.syncBalanceNow", "đồng bộ lại số dư ví với hệ thống", "sync wallet balance with system")
           }
         ]
       };
@@ -166,7 +193,7 @@
     }
 
     getUsername() {
-      return currentUsername || "Khách";
+      return currentUsername || msg("danv.guest", "Khách", "Guest");
     }
 
     getBalance() {
@@ -186,38 +213,55 @@
     }
 
     syncBalanceNow() {
+      const now = Date.now();
+      if (now - lastSyncTime < COOLDOWN_MS) {
+        return;
+      }
+      lastSyncTime = now;
       sendHandshake();
     }
 
-    // XỬ LÝ KHỐI LỆNH YÊU CẦU THANH TOÁN (ASYNC PROMISE)
     requestPaymentAndWait(args) {
-      const amount = Math.max(1, Math.floor(Number(args.AMOUNT) || 0));
-      const reason = String(args.REASON || "Vật phẩm trong game").trim();
+      let rawAmount = Number(args.AMOUNT);
+      if (!Number.isFinite(rawAmount) || rawAmount < 1) {
+        rawAmount = 1;
+      }
+      const amount = Math.floor(rawAmount);
 
-      // Trường hợp 1: Game đang chạy độc lập (không nhúng trên DANVworkshop)
+      const defaultReasonText = msg("danv.defaultReason", "Mua vật phẩm", "In-game item");
+      const reason = String(args.REASON ?? defaultReasonText).trim().slice(0, 100) || defaultReasonText;
+
       if (!isEmbedded()) {
         lastTxStatus = "NOT_EMBEDDED";
-        return Promise.resolve();
+        lastTxId = "";
+        return Promise.resolve(false);
       }
 
-      // Trường hợp 2: Chặn gọi spam quá dày đặc (dưới 3 giây) chống treo browser
       const now = Date.now();
-      if (now - lastRequestTime < 3000) {
+      if (now - lastRequestTime < COOLDOWN_MS) {
         lastTxStatus = "RATE_LIMITED";
-        return Promise.resolve();
+        return Promise.resolve(false);
       }
       lastRequestTime = now;
 
-      // Trường hợp 3: Gửi phiếu yêu cầu lên Web cha (Web cha tự kiểm tra đăng nhập/số dư và kích hoạt modal)
+      for (const resolver of pendingPaymentResolvers.values()) {
+        clearTimeout(resolver.timer);
+        resolver.resolve(false);
+      }
+      pendingPaymentResolvers.clear();
+
+      lastTxStatus = "PENDING";
+      lastTxId = "";
+
       return new Promise((resolve) => {
-        const requestId = "REQ_" + (typeof crypto.randomUUID === "function" 
-          ? crypto.randomUUID().slice(0, 10) 
+        const requestId = "REQ_" + (typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID().slice(0, 10)
           : Math.random().toString(36).substring(2, 10));
 
-        // Hẹn giờ tự động hủy sau 90 giây nếu người chơi bỏ quên Pop-up
         const timeoutTimer = setTimeout(() => {
           if (pendingPaymentResolvers.has(requestId)) {
             lastTxStatus = "TIMEOUT";
+            lastTxId = "";
             pendingPaymentResolvers.delete(requestId);
             resolve(false);
           }
@@ -228,7 +272,6 @@
           timer: timeoutTimer
         });
 
-        // Bắn tín hiệu lên trang cha mở Pop-up xác nhận
         window.parent.postMessage({
           type: "DANV_WOW_PAY_REQUEST",
           requestId: requestId,
@@ -237,6 +280,36 @@
         }, "*");
       });
     }
+
+    openPrivacyPolicy() {
+      const url = "https://studiodanv.blogspot.com/2026/09/WOW.html";
+      if (typeof Scratch.openWindow === "function") {
+        Scratch.openWindow(url);
+      } else {
+        window.open(url, "_blank");
+      }
+    }
+
+    openHomePage() {
+      const url = "https://turbows.pages.dev/";
+      if (typeof Scratch.openWindow === "function") {
+        Scratch.openWindow(url);
+      } else {
+        window.open(url, "_blank");
+      }
+    }
+  }
+
+  if (Scratch.vm && Scratch.vm.runtime) {
+    Scratch.vm.runtime.on("PROJECT_STOP_ALL", () => {
+      for (const resolver of pendingPaymentResolvers.values()) {
+        clearTimeout(resolver.timer);
+        resolver.resolve(false);
+      }
+      pendingPaymentResolvers.clear();
+      lastTxStatus = "NONE";
+      lastTxId = "";
+    });
   }
 
   Scratch.extensions.register(new DANVWowEconomyExtension());
