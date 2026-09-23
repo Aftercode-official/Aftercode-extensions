@@ -450,10 +450,6 @@
     }
 
     runJSUnsandboxed(args) {
-      if (!document.getElementById('afteros-os-container')) {
-        createTerminalWindow();
-      }
-
       const targetId = args.ID ? String(args.ID).trim() : 'main';
       const codeToRun = readCode(targetId);
 
