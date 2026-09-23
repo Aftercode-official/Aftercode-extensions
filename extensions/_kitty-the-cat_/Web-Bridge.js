@@ -442,7 +442,7 @@
 
                     this.ws =
                         new WebSocket(
-                            "wss://extension-web-server-8fkf.onrender.com"
+                            "wss://cloud-server-production-aftercode.up.railway.app/"
                         );
 
 
