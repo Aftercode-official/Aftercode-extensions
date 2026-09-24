@@ -6,10 +6,84 @@
 
 (function(Scratch) {
     'use strict';
-if (!Scratch.extensions.unsandboxed) {
-    throw new Error("must be ran unsandboxed");
-}
-// bytebeat core
+    if (!Scratch.extensions.unsandboxed) {
+        throw new Error("must be ran unsandboxed");
+    }
+
+    const VAR_PREFIX = '__bytebeat_';
+
+    /* ------------------------------------------------------------------ */
+    /*  Storage: mỗi preset = 1 biến ẩn __bytebeat_<id>                    */
+    /* ------------------------------------------------------------------ */
+
+    function getStorageVariable(id) {
+        const stage = Scratch.vm.runtime.getTargetForStage();
+        if (!stage) return null;
+        const safeId = String(id || 'song1').trim() || 'song1';
+        const varName = VAR_PREFIX + safeId;
+        return stage.lookupOrCreateVariable(varName, varName);
+    }
+
+    function readPreset(id) {
+        const v = getStorageVariable(id);
+        if (!v) return null;
+        if (typeof v.value !== 'string' || v.value === '') return null;
+        try {
+            const parsed = JSON.parse(v.value);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return {
+                    mode: parsed.mode || 'Bytebeat',
+                    code: typeof parsed.code === 'string' ? parsed.code : '0'
+                };
+            }
+        } catch (e) {
+            // Dữ liệu cũ dạng text thuần -> coi là code Bytebeat
+            return { mode: 'Bytebeat', code: String(v.value) };
+        }
+        return null;
+    }
+
+    function writePreset(id, preset) {
+        const v = getStorageVariable(id);
+        if (!v) return;
+        v.value = JSON.stringify({ mode: preset.mode, code: preset.code });
+    }
+
+    function deletePreset(id) {
+        const stage = Scratch.vm.runtime.getTargetForStage();
+        if (!stage) return false;
+        const varName = VAR_PREFIX + String(id || '').trim();
+        for (const varId in stage.variables) {
+            const v = stage.variables[varId];
+            if (v && v.name === varName) {
+                try {
+                    stage.deleteVariable(varId);
+                } catch (e) {
+                    try { v.value = ''; } catch (e2) { return false; }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function listPresetIds() {
+        const stage = Scratch.vm.runtime.getTargetForStage();
+        if (!stage || !stage.variables) return [];
+        const ids = [];
+        for (const varId in stage.variables) {
+            const v = stage.variables[varId];
+            if (v && typeof v.name === 'string' && v.name.startsWith(VAR_PREFIX)) {
+                ids.push(v.name.slice(VAR_PREFIX.length));
+            }
+        }
+        return ids.sort();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  AudioWorklet processor code                                        */
+    /* ------------------------------------------------------------------ */
+
     const processorCode = `
     class audioProcessor extends AudioWorkletProcessor {
         constructor(...args) {
@@ -283,24 +357,22 @@ if (!Scratch.extensions.unsandboxed) {
     registerProcessor('audioProcessor', audioProcessor);
     `;
 
+    const DEFAULT_PRESET_ID = 'song1';
+    const DEFAULT_PRESET = {
+        mode: 'Funcbeat',
+        code: 'l=0;rm=0;return t=>{T=t*1.2;s=0;for(i=0;i<5;i++){s+=30**cbrt(sin(t*PI*(1.5**i)*(m=300-((T>>2&3)*50))))*(1-T%1)/200*(i&1?-1:1)}p=t/128*m*(T*2&1?128:64)&1;l+=rm+=(p-l-rm*2)/(170*sin(t)+200);b=(l+p)/10*(1-T%.5*2);k=sin(100*(z=(T+(T&1?-.25:0))%1)**.5)/2*(1-z)**20;h=(random()*(1-(1+T+(T*2&1?.25:-.25))%1)**200)/4;c=(random()*(1-(T+.5)%1)**500+sin(t*PI*5000)*(1-(T+.5)%1)**150)/2;return s+k+h+c+b}'
+    };
+
     class AdvancedAudioWorkletExtension {
         constructor() {
             this.audioCtx = null;
             this.workletNode = null;
             this.isInitialized = false;
-            
-            // Danh sách lưu trữ các ID code
-            this.codePresets = {
-                'song1': {
-                    mode: 'Funcbeat',
-                    code: 'l=0;rm=0;return t=>{T=t*1.2;s=0;for(i=0;i<5;i++){s+=30**cbrt(sin(t*PI*(1.5**i)*(m=300-((T>>2&3)*50))))*(1-T%1)/200*(i&1?-1:1)}p=t/128*m*(T*2&1?128:64)&1;l+=rm+=(p-l-rm*2)/(170*sin(t)+200);b=(l+p)/10*(1-T%.5*2);k=sin(100*(z=(T+(T&1?-.25:0))%1)**.5)/2*(1-z)**20;h=(random()*(1-(1+T+(T*2&1?.25:-.25))%1)**200)/4;c=(random()*(1-(T+.5)%1)**500+sin(t*PI*5000)*(1-(T+.5)%1)**150)/2;return s+k+h+c+b}'
-                }
-            };
-            
-            this.currentId = 'song1';
+
+            this.currentId = DEFAULT_PRESET_ID;
             this.sampleRateVal = 48000;
             this.latestT = 0;
-            
+
             this.uiWindow = null;
             this.isEditorOpen = false;
             this.editorCodeArea = null;
@@ -308,61 +380,16 @@ if (!Scratch.extensions.unsandboxed) {
             this.waveformCanvas = null;
             this.waveformCtx = null;
             this.waveDataHistory = [];
+
+            // Đảm bảo preset default tồn tại lần đầu
+            if (!readPreset(DEFAULT_PRESET_ID)) {
+                writePreset(DEFAULT_PRESET_ID, DEFAULT_PRESET);
+            }
         }
 
-        getInfo() {
-            return {
-                id: 'advancedAudioWorklet',
-                name: 'Bytebeat player',
-                color1: '#7c3aed',
-                color2: '#6d28d9',
-                color3: '#5b21b6',
-                blocks: [
-                    {
-                        opcode: 'openEditor',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: 'mở giao diện Bytebeat editor'
-                    },
-                    {
-                         opcode: 'closeEditor',
-                         blockType: Scratch.BlockType.COMMAND,
-                         text:'đóng dao diện Bytebeat editor',
-                    },
-                    {
-                        opcode: 'playCodeById',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: 'phát mã theo ID [ID]',
-                        arguments: {
-                            ID: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: 'song1'
-                            }
-                        }
-                    },
-                    {
-                        opcode: 'stopAudio',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: 'dừng phát âm thanh'
-                    },
-                    {
-                        opcode: 'setSampleRate',
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: 'đặt sample rate thành [RATE]',
-                        arguments: {
-                            RATE: {
-                                type: Scratch.ArgumentType.NUMBER,
-                                defaultValue: 48000
-                            }
-                        }
-                    },
-                    {
-                        opcode: 'getCurrentT',
-                        blockType: Scratch.BlockType.REPORTER,
-                        text: 'giá trị t hiện tại'
-                    }
-                ],
-            };
-        }
+        /* ============================================================ */
+        /*  AUDIO                                                       */
+        /* ============================================================ */
 
         async initAudio(sampleRate = 8000) {
             if (!this.audioCtx) {
@@ -376,11 +403,11 @@ if (!Scratch.extensions.unsandboxed) {
             if (!this.isInitialized) {
                 const blob = new Blob([processorCode], { type: 'application/javascript' });
                 const blobUrl = URL.createObjectURL(blob);
-                
+
                 try {
                     await this.audioCtx.audioWorklet.addModule(blobUrl);
                     this.workletNode = new AudioWorkletNode(this.audioCtx, 'audioProcessor');
-                    
+
                     this.workletNode.port.onmessage = (e) => {
                         if (e.data.currentT !== undefined) {
                             this.latestT = e.data.currentT;
@@ -458,22 +485,161 @@ if (!Scratch.extensions.unsandboxed) {
             ctx.stroke();
         }
 
+        /* ============================================================ */
+        /*  BLOCKS                                                      */
+        /* ============================================================ */
+
+        getInfo() {
+            return {
+                id: 'advancedAudioWorklet',
+                name: 'Bytebeat player',
+                color1: '#7c3aed',
+                color2: '#6d28d9',
+                color3: '#5b21b6',
+                blocks: [
+                    {
+                        opcode: 'openEditor',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'mở giao diện Bytebeat editor'
+                    },
+                    {
+                        opcode: 'closeEditor',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'đóng giao diện Bytebeat editor'
+                    },
+                    {
+                        opcode: 'playCodeById',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'phát mã theo ID [ID]',
+                        arguments: {
+                            ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'song1' }
+                        }
+                    },
+                    {
+                        opcode: 'playInlineCode',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'phát code [CODE] ở chế độ [MODE]',
+                        arguments: {
+                            CODE: { type: Scratch.ArgumentType.STRING, defaultValue: 't*(t>>8|t>>13)&128' },
+                            MODE: {
+                                type: Scratch.ArgumentType.STRING,
+                                menu: 'modeMenu',
+                                defaultValue: 'Bytebeat'
+                            }
+                        }
+                    },
+                    {
+                        opcode: 'savePreset',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'lưu preset ID [ID] mode [MODE] code [CODE]',
+                        arguments: {
+                            ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'song1' },
+                            MODE: {
+                                type: Scratch.ArgumentType.STRING,
+                                menu: 'modeMenu',
+                                defaultValue: 'Bytebeat'
+                            },
+                            CODE: { type: Scratch.ArgumentType.STRING, defaultValue: 't*(t>>8|t>>13)&128' }
+                        }
+                    },
+                    {
+                        opcode: 'deletePresetBlock',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'xóa preset ID [ID]',
+                        arguments: {
+                            ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'song1' }
+                        }
+                    },
+                    {
+                        opcode: 'listPresetsBlock',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: 'liệt kê preset ID'
+                    },
+                    {
+                        opcode: 'stopAudio',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'dừng phát âm thanh'
+                    },
+                    {
+                        opcode: 'setSampleRate',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'đặt sample rate thành [RATE]',
+                        arguments: {
+                            RATE: { type: Scratch.ArgumentType.NUMBER, defaultValue: 48000 }
+                        }
+                    },
+                    {
+                        opcode: 'getCurrentT',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: 'giá trị t hiện tại'
+                    },
+                    {
+                        opcode: 'hasPreset',
+                        blockType: Scratch.BlockType.BOOLEAN,
+                        text: 'có preset ID [ID] không?',
+                        arguments: {
+                            ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'song1' }
+                        }
+                    }
+                ],
+                menus: {
+                    modeMenu: {
+                        acceptReporters: true,
+                        items: ['Bytebeat', 'Signed Bytebeat', 'Floatbeat', 'Funcbeat']
+                    }
+                }
+            };
+        }
+
         getCurrentT() {
             return this.latestT;
         }
 
-        saveCodeWithId(args) {
-            const id = (args.ID || 'song1').trim();
+        hasPreset(args) {
+            const id = (args.ID || '').trim();
+            return !!readPreset(id);
+        }
+
+        savePreset(args) {
+            const id = (args.ID || 'song1').trim() || 'song1';
             const mode = args.MODE || 'Bytebeat';
             const code = args.CODE || '0';
+            writePreset(id, { mode, code });
+            this.updatePresetDropdownUI();
+        }
 
-            this.codePresets[id] = { mode, code };
+        deletePresetBlock(args) {
+            const id = (args.ID || '').trim();
+            if (!id) return;
+            deletePreset(id);
+            this.updatePresetDropdownUI();
+        }
+
+        listPresetsBlock() {
+            return listPresetIds().join(', ');
+        }
+
+        async playInlineCode(args) {
+            const mode = args.MODE || 'Bytebeat';
+            const code = String(args.CODE || '0');
+            await this.initAudio(this.sampleRateVal);
+            if (this.workletNode) {
+                this.workletNode.port.postMessage({ mode });
+                this.workletNode.port.postMessage({ sampleRate: this.sampleRateVal });
+                this.workletNode.port.postMessage({ setFunction: code });
+                this.workletNode.port.postMessage({ isPlaying: true });
+                this.workletNode.port.postMessage({ resetTime: true });
+            }
+        }
+
+        saveCodeWithId(id, mode, code) {
+            writePreset(id, { mode, code });
             this.updatePresetDropdownUI();
         }
 
         async playCodeById(args) {
             const id = (args.ID || 'song1').trim();
-            const preset = this.codePresets[id];
+            const preset = readPreset(id);
 
             if (!preset) {
                 console.warn(`Không tìm thấy mã với ID: "${id}"`);
@@ -501,7 +667,7 @@ if (!Scratch.extensions.unsandboxed) {
                 const idInput = this.uiWindow.querySelector('#aw-id-input');
                 const modeSelect = this.uiWindow.querySelector('#aw-mode-select');
                 const dropdown = this.uiWindow.querySelector('#aw-preset-dropdown');
-                
+
                 if (idInput) idInput.value = id;
                 if (modeSelect) modeSelect.value = preset.mode;
                 if (dropdown) dropdown.value = id;
@@ -530,8 +696,9 @@ if (!Scratch.extensions.unsandboxed) {
             const dropdown = this.uiWindow.querySelector('#aw-preset-dropdown');
             if (!dropdown) return;
 
+            const ids = listPresetIds();
             dropdown.innerHTML = '';
-            for (const id in this.codePresets) {
+            for (const id of ids) {
                 const opt = document.createElement('option');
                 opt.value = id;
                 opt.innerText = id;
@@ -565,7 +732,7 @@ if (!Scratch.extensions.unsandboxed) {
                 overflow: hidden;
             `;
 
-            const currentPreset = this.codePresets[this.currentId] || { mode: 'Bytebeat', code: 't * (t >> 8 | t >> 13) & 128' };
+            const currentPreset = readPreset(this.currentId) || { mode: 'Bytebeat', code: 't * (t >> 8 | t >> 13) & 128' };
 
             this.uiWindow.innerHTML = `
                 <div id="aw-header" style="display: flex; justify-content: space-between; align-items: center; cursor: move; margin-bottom: 12px; border-bottom: 1px solid #1e293b; padding-bottom: 8px;">
@@ -579,7 +746,6 @@ if (!Scratch.extensions.unsandboxed) {
                     </div>
                 </div>
                 
-                <!-- Thanh công cụ điều khiển -->
                 <div style="margin-bottom: 10px; background: #111827; padding: 8px; border-radius: 6px; display: flex; gap: 8px; align-items: center; border: 1px solid #1f2937; flex-wrap: wrap;">
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <label style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Preset:</label>
@@ -602,7 +768,6 @@ if (!Scratch.extensions.unsandboxed) {
                     </div>
                 </div>
 
-                <!-- Khung chỉnh sửa Code (CodeMirror-like dark style) -->
                 <div style="margin-bottom: 10px; flex: 1; display: flex; flex-direction: column;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <label style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Expression / Function Code</label>
@@ -610,15 +775,12 @@ if (!Scratch.extensions.unsandboxed) {
                     <textarea id="aw-code" spellcheck="false" style="flex: 1; width: 100%; background: #030712; color: #a5b4fc; border: 1px solid #1f2937; font-family: inherit; font-size: 12px; line-height: 1.5; padding: 10px; box-sizing: border-box; resize: none; border-radius: 6px; outline: none; tab-size: 4;">${currentPreset.code}</textarea>
                 </div>
 
-                <!-- Khung hiển thị Sóng âm (Oscilloscope) -->
                 <div style="margin-bottom: 10px; height: 75px; display: flex; flex-direction: column;">
                     <canvas id="aw-waveform" width="590" height="75" style="width: 100%; height: 75px; background: #030712; border: 1px solid #1f2937; border-radius: 6px; box-sizing: border-box;"></canvas>
                 </div>
 
-                <!-- Dòng trạng thái & Báo lỗi -->
                 <div id="aw-error" style="font-size: 11px; color: #4ade80; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #030712; padding: 6px 10px; border-radius: 4px; border: 1px solid #1f2937;">Trạng thái: Sẵn sàng</div>
 
-                <!-- Các nút hành động chính -->
                 <div style="display: flex; gap: 8px;">
                     <button id="aw-btn-play" style="flex: 2; background: #7c3aed; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; letter-spacing: 0.5px; transition: background 0.2s;">▶ COMPILE & PLAY</button>
                     <button id="aw-btn-save" style="flex: 1; background: #1f2937; color: #f8fafc; border: 1px solid #374151; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;">💾 LƯU</button>
@@ -635,74 +797,73 @@ if (!Scratch.extensions.unsandboxed) {
 
             this.updatePresetDropdownUI();
 
-            // Đóng cửa sổ
             this.uiWindow.querySelector('#aw-close').onclick = () => this.closeEditor();
 
-            // Chọn ID từ danh sách Dropdown
             this.uiWindow.querySelector('#aw-preset-dropdown').onchange = (e) => {
                 const selectedId = e.target.value;
-                if (this.codePresets[selectedId]) {
+                const p = readPreset(selectedId);
+                if (p) {
                     this.currentId = selectedId;
                     this.uiWindow.querySelector('#aw-id-input').value = selectedId;
-                    this.uiWindow.querySelector('#aw-mode-select').value = this.codePresets[selectedId].mode;
-                    this.editorCodeArea.value = this.codePresets[selectedId].code;
+                    this.uiWindow.querySelector('#aw-mode-select').value = p.mode;
+                    this.editorCodeArea.value = p.code;
                 }
             };
 
-            // Nút Save ID
             this.uiWindow.querySelector('#aw-btn-save').onclick = () => {
                 const id = this.uiWindow.querySelector('#aw-id-input').value.trim() || 'song1';
                 const mode = this.uiWindow.querySelector('#aw-mode-select').value;
                 const code = this.editorCodeArea.value;
 
-                this.saveCodeWithId({ ID: id, MODE: mode, CODE: code });
+                this.saveCodeWithId(id, mode, code);
                 this.currentId = id;
                 if (this.errorDisplayEl) {
-                    this.errorDisplayEl.innerText = `Đã lưu thành công mã với ID: "${id}"`;
+                    this.errorDisplayEl.innerText = `Đã lưu preset "${id}" vào biến ${VAR_PREFIX}${id}`;
                     this.errorDisplayEl.style.color = '#38bdf8';
                 }
             };
 
-            // Nút Play
             this.uiWindow.querySelector('#aw-btn-play').onclick = async () => {
                 const id = this.uiWindow.querySelector('#aw-id-input').value.trim() || 'song1';
                 const mode = this.uiWindow.querySelector('#aw-mode-select').value;
                 const code = this.editorCodeArea.value;
 
-                // Tự động lưu khi bấm Play
-                this.saveCodeWithId({ ID: id, MODE: mode, CODE: code });
+                this.saveCodeWithId(id, mode, code);
                 await this.playCodeById({ ID: id });
             };
 
-            // Nút Delete ID
             this.uiWindow.querySelector('#aw-btn-delete').onclick = () => {
                 const id = this.uiWindow.querySelector('#aw-id-input').value.trim();
-                if (this.codePresets[id]) {
-                    delete this.codePresets[id];
-                    const remainingKeys = Object.keys(this.codePresets);
-                    if (remainingKeys.length > 0) {
-                        this.currentId = remainingKeys[0];
+                if (id && readPreset(id)) {
+                    deletePreset(id);
+                    const remainingIds = listPresetIds();
+                    if (remainingIds.length > 0) {
+                        this.currentId = remainingIds[0];
+                        const p = readPreset(this.currentId);
                         this.uiWindow.querySelector('#aw-id-input').value = this.currentId;
-                        this.uiWindow.querySelector('#aw-mode-select').value = this.codePresets[this.currentId].mode;
-                        this.editorCodeArea.value = this.codePresets[this.currentId].code;
+                        if (p) {
+                            this.uiWindow.querySelector('#aw-mode-select').value = p.mode;
+                            this.editorCodeArea.value = p.code;
+                        }
                     } else {
-                        this.saveCodeWithId({ ID: 'song1', MODE: 'Bytebeat', CODE: '0' });
+                        writePreset('song1', { mode: 'Bytebeat', code: '0' });
                         this.currentId = 'song1';
+                        this.uiWindow.querySelector('#aw-id-input').value = 'song1';
+                        this.uiWindow.querySelector('#aw-mode-select').value = 'Bytebeat';
+                        this.editorCodeArea.value = '0';
                     }
                     this.updatePresetDropdownUI();
                     if (this.errorDisplayEl) {
-                        this.errorDisplayEl.innerText = `Đã xóa ID "${id}"!`;
+                        this.errorDisplayEl.innerText = `Đã xóa preset "${id}"!`;
                         this.errorDisplayEl.style.color = '#f59e0b';
                     }
                 }
             };
 
-            // Nút Dừng
             this.uiWindow.querySelector('#aw-btn-stop').onclick = () => {
                 this.stopAudio();
             };
 
-            // Kéo thả cửa sổ Editor
             const header = this.uiWindow.querySelector('#aw-header');
             let isDragging = false;
             let startX, startY, initialLeft, initialTop;
