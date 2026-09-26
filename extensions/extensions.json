@@ -1,6 +1,6 @@
 [
   // This file supports comments
-  "DANV/WOW-extension",
+  "DANV/CloudDB",
   "katboizz/Bytebeat-player",
   "katboizz/Extension-builder",
   "katboizz/javascript",
@@ -10,5 +10,6 @@
   "katboizz/Counter Expanded",
   "katboizz/css style",
   "obviousAlexC/shader",
-  "_kitty-the-cat_/Web-Screen"
+  "_kitty-the-cat_/Web-Screen",
+  "DANV/WOW-extension"
 ]

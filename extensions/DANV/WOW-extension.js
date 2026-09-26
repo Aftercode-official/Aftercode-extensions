@@ -2,6 +2,7 @@
 // ID: danvWowEconomy
 // Description: Tích hợp hệ thống tiền tệ năng lượng WOW của DANVworkshop vào game
 // By: StudioDANV <https://turbows.pages.dev/users/StudioDANV>
+// License: MIT
 
 (function (Scratch) {
   "use strict";
@@ -20,7 +21,7 @@
 
   let userBalance = 0;
   let isLoggedIn = false;
-  let currentUsername = "";
+  let currentUsername = "Guest"; // Mặc định là "Guest" thay vì rỗng hoặc "Khách"
   let lastTxStatus = "NONE";
   let lastTxId = "";
 
@@ -33,6 +34,32 @@
   let isSyncingBalance = false;
 
   const pendingPaymentResolvers = new Map();
+
+  // Hàm đồng bộ và ghi đè khối username màu xanh mặc định của Turbowarp
+  function updateTurboWarpUsername(name) {
+    const usernameToSet = name || "Guest";
+    try {
+      if (Scratch.vm) {
+        // Gửi qua kênh postIOData chính thống của Scratch/Turbowarp VM
+        if (typeof Scratch.vm.postIOData === "function") {
+          Scratch.vm.postIOData("userData", { username: usernameToSet });
+        }
+        // Ghi đè trực tiếp vào ioDevices để tương thích cả chế độ Compiler và Interpreter
+        if (Scratch.vm.runtime && Scratch.vm.runtime.ioDevices && Scratch.vm.runtime.ioDevices.userData) {
+          const userData = Scratch.vm.runtime.ioDevices.userData;
+          userData._username = usernameToSet;
+          userData.getUsername = function () {
+            return currentUsername || "Guest";
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("DANV WOW Economy: Lỗi khi cập nhật username Turbowarp", e);
+    }
+  }
+
+  // Khởi tạo ngay lập tức username mặc định thành "Guest" cho Turbowarp khi tiện ích được tải
+  updateTurboWarpUsername(currentUsername);
 
   function isEmbedded() {
     try {
@@ -78,10 +105,15 @@
       }
 
       isLoggedIn = !!data.isLoggedIn;
-      if (!currentUsername && data.username) {
-        currentUsername = String(data.username || "");
+      if (data.username && String(data.username).trim()) {
+        currentUsername = String(data.username).trim();
+      } else {
+        currentUsername = "Guest";
       }
       userBalance = parseInt(data.balance, 10) || 0;
+
+      // Cập nhật ngay tên người chơi DANV vào khối username xanh của Turbowarp
+      updateTurboWarpUsername(currentUsername);
     }
 
     if (data.type === "DANV_WOW_PAY_RESPONSE") {
@@ -119,7 +151,7 @@
         "danv.getLastTxStatus": "trạng thái giao dịch gần nhất",
         "danv.getLastTxId": "mã giao dịch (TX ID) gần nhất",
         "danv.syncBalanceNow": "đồng bộ lại số dư ví với hệ thống",
-        "danv.guest": "Khách"
+        "danv.guest": "Guest" // Đã đổi từ "Khách" sang "Guest"
       }
     });
   }
@@ -217,7 +249,7 @@
     }
 
     getUsername() {
-      return currentUsername || msg("danv.guest", "Khách", "Guest");
+      return currentUsername || "Guest";
     }
 
     getBalance() {
@@ -335,26 +367,41 @@
     }
   }
 
-  if (Scratch.vm && Scratch.vm.runtime) {
-    Scratch.vm.runtime.on("PROJECT_STOP_ALL", () => {
-      if (handshakeTimeoutTimer) {
-        clearTimeout(handshakeTimeoutTimer);
-        handshakeTimeoutTimer = null;
-      }
-      if (syncBalanceTimeoutTimer) {
-        clearTimeout(syncBalanceTimeoutTimer);
-        syncBalanceTimeoutTimer = null;
-        isSyncingBalance = false;
-      }
+  // Lắng nghe sự kiện của VM để duy trì username Turbowarp liên tục
+  if (Scratch.vm) {
+    if (Scratch.vm.runtime) {
+      // Khi nhấn cờ xanh hoặc bắt đầu chạy dự án, luôn đảm bảo username màu xanh trùng khớp
+      Scratch.vm.runtime.on("PROJECT_START", () => {
+        updateTurboWarpUsername(currentUsername);
+      });
 
-      for (const resolver of pendingPaymentResolvers.values()) {
-        clearTimeout(resolver.timer);
-        resolver.resolve(false);
-      }
-      pendingPaymentResolvers.clear();
-      lastTxStatus = "NONE";
-      lastTxId = "";
-    });
+      Scratch.vm.runtime.on("PROJECT_STOP_ALL", () => {
+        if (handshakeTimeoutTimer) {
+          clearTimeout(handshakeTimeoutTimer);
+          handshakeTimeoutTimer = null;
+        }
+        if (syncBalanceTimeoutTimer) {
+          clearTimeout(syncBalanceTimeoutTimer);
+          syncBalanceTimeoutTimer = null;
+          isSyncingBalance = false;
+        }
+
+        for (const resolver of pendingPaymentResolvers.values()) {
+          clearTimeout(resolver.timer);
+          resolver.resolve(false);
+        }
+        pendingPaymentResolvers.clear();
+        lastTxStatus = "NONE";
+        lastTxId = "";
+      });
+    }
+
+    // Khi nạp dự án mới
+    if (typeof Scratch.vm.on === "function") {
+      Scratch.vm.on("PROJECT_LOADED", () => {
+        updateTurboWarpUsername(currentUsername);
+      });
+    }
   }
 
   Scratch.extensions.register(new DANVWowEconomyExtension());

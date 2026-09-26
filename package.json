@@ -1,7 +1,7 @@
 {
-  "name": "@turbowarp/extensions",
+  "name": "@Aftercode/extensions",
   "version": "0.0.1",
-  "description": "Unsandboxed extensions for TurboWarp",
+  "description": "Unsandboxed extensions for Aftercode",
   "exports": {
     "./builder": "./development/builder.js"
   },
