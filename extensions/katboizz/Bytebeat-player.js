@@ -422,7 +422,7 @@
                             }
                         } else if (e.data.error && e.data.error.message === '') {
                             if (this.errorDisplayEl) {
-                                this.errorDisplayEl.innerText = "Trạng thái: Biên dịch thành công!";
+                                this.errorDisplayEl.innerText = "status: Compile successful";
                                 this.errorDisplayEl.style.color = '#22c55e';
                             }
                         }
@@ -806,7 +806,7 @@
                 this.saveCodeWithId(id, mode, code);
                 this.currentId = id;
                 if (this.errorDisplayEl) {
-                    this.errorDisplayEl.innerText = `Đã lưu preset "${id}" vào biến ${VAR_PREFIX}${id}`;
+                    this.errorDisplayEl.innerText = `Saved code ID "${id}" into a variable ${VAR_PREFIX}${id}`;
                     this.errorDisplayEl.style.color = '#38bdf8';
                 }
             };
