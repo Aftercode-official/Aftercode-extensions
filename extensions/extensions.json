@@ -1,5 +1,6 @@
 [
   // This file supports comments
+  "DANV/WOW-extension",
   "katboizz/Bytebeat-player",
   "katboizz/Extension-builder",
   "katboizz/javascript",
@@ -8,7 +9,6 @@
   "katboizz/fake windows v2",
   "katboizz/Counter Expanded",
   "katboizz/css style",
-  "DANV/WOW-extension",
   "obviousAlexC/shader",
   "_kitty-the-cat_/Web-Screen"
 ]
