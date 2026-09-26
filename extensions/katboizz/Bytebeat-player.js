@@ -12,10 +12,6 @@
 
     const VAR_PREFIX = '__bytebeat_';
 
-    /* ------------------------------------------------------------------ */
-    /*  Storage: mỗi preset = 1 biến ẩn __bytebeat_<id>                    */
-    /* ------------------------------------------------------------------ */
-
     function getStorageVariable(id) {
         const stage = Scratch.vm.runtime.getTargetForStage();
         if (!stage) return null;
@@ -381,15 +377,11 @@
             this.waveformCtx = null;
             this.waveDataHistory = [];
 
-            // Đảm bảo preset default tồn tại lần đầu
+            
             if (!readPreset(DEFAULT_PRESET_ID)) {
                 writePreset(DEFAULT_PRESET_ID, DEFAULT_PRESET);
             }
         }
-
-        /* ============================================================ */
-        /*  AUDIO                                                       */
-        /* ============================================================ */
 
         async initAudio(sampleRate = 8000) {
             if (!this.audioCtx) {
@@ -485,10 +477,6 @@
             ctx.stroke();
         }
 
-        /* ============================================================ */
-        /*  BLOCKS                                                      */
-        /* ============================================================ */
-
         getInfo() {
             return {
                 id: 'advancedAudioWorklet',
@@ -500,17 +488,17 @@
                     {
                         opcode: 'openEditor',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'mở giao diện Bytebeat editor'
+                        text: 'Open Bytebeat editor'
                     },
                     {
                         opcode: 'closeEditor',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'đóng giao diện Bytebeat editor'
+                        text: 'Close Bytebeat editor'
                     },
                     {
                         opcode: 'playCodeById',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'phát mã theo ID [ID]',
+                        text: 'Play ID code [ID]',
                         arguments: {
                             ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'song1' }
                         }
@@ -518,7 +506,7 @@
                     {
                         opcode: 'playInlineCode',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'phát code [CODE] ở chế độ [MODE]',
+                        text: 'Play code [CODE] mode [MODE]',
                         arguments: {
                             CODE: { type: Scratch.ArgumentType.STRING, defaultValue: 't*(t>>8|t>>13)&128' },
                             MODE: {
@@ -531,7 +519,7 @@
                     {
                         opcode: 'savePreset',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'lưu preset ID [ID] mode [MODE] code [CODE]',
+                        text: 'Save preset ID [ID] mode [MODE] code [CODE]',
                         arguments: {
                             ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'song1' },
                             MODE: {
@@ -545,7 +533,7 @@
                     {
                         opcode: 'deletePresetBlock',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'xóa preset ID [ID]',
+                        text: 'Delete preset ID [ID]',
                         arguments: {
                             ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'song1' }
                         }
@@ -553,17 +541,17 @@
                     {
                         opcode: 'listPresetsBlock',
                         blockType: Scratch.BlockType.REPORTER,
-                        text: 'liệt kê preset ID'
+                        text: 'All preset ID'
                     },
                     {
                         opcode: 'stopAudio',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'dừng phát âm thanh'
+                        text: 'Stop all sound ID'
                     },
                     {
                         opcode: 'setSampleRate',
                         blockType: Scratch.BlockType.COMMAND,
-                        text: 'đặt sample rate thành [RATE]',
+                        text: 'Set sample rate to [RATE]',
                         arguments: {
                             RATE: { type: Scratch.ArgumentType.NUMBER, defaultValue: 48000 }
                         }
@@ -571,12 +559,12 @@
                     {
                         opcode: 'getCurrentT',
                         blockType: Scratch.BlockType.REPORTER,
-                        text: 'giá trị t hiện tại'
+                        text: 'Get value variable T'
                     },
                     {
                         opcode: 'hasPreset',
                         blockType: Scratch.BlockType.BOOLEAN,
-                        text: 'có preset ID [ID] không?',
+                        text: 'Has preset ID? [ID]',
                         arguments: {
                             ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'song1' }
                         }
@@ -642,7 +630,7 @@
             const preset = readPreset(id);
 
             if (!preset) {
-                console.warn(`Không tìm thấy mã với ID: "${id}"`);
+                console.warn(`Cant find ID code: "${id}"`);
                 if (this.errorDisplayEl) {
                     this.errorDisplayEl.innerText = `Lỗi: Không tìm thấy ID "${id}"!`;
                     this.errorDisplayEl.style.color = '#ef4444';
@@ -779,13 +767,13 @@
                     <canvas id="aw-waveform" width="590" height="75" style="width: 100%; height: 75px; background: #030712; border: 1px solid #1f2937; border-radius: 6px; box-sizing: border-box;"></canvas>
                 </div>
 
-                <div id="aw-error" style="font-size: 11px; color: #4ade80; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #030712; padding: 6px 10px; border-radius: 4px; border: 1px solid #1f2937;">Trạng thái: Sẵn sàng</div>
+                <div id="aw-error" style="font-size: 11px; color: #4ade80; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #030712; padding: 6px 10px; border-radius: 4px; border: 1px solid #1f2937;">status: ready</div>
 
                 <div style="display: flex; gap: 8px;">
-                    <button id="aw-btn-play" style="flex: 2; background: #7c3aed; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; letter-spacing: 0.5px; transition: background 0.2s;">▶ COMPILE & PLAY</button>
-                    <button id="aw-btn-save" style="flex: 1; background: #1f2937; color: #f8fafc; border: 1px solid #374151; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;">💾 LƯU</button>
-                    <button id="aw-btn-stop" style="flex: 1; background: #dc2626; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;">⏹ DỪNG</button>
-                    <button id="aw-btn-delete" style="background: #111827; color: #ef4444; border: 1px solid #374151; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;" title="Xóa ID hiện tại">🗑️</button>
+                    <button id="aw-btn-play" style="flex: 2; background: #7c3aed; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; letter-spacing: 0.5px; transition: background 0.2s;">COMPILE & PLAY</button>
+                    <button id="aw-btn-save" style="flex: 1; background: #1f2937; color: #f8fafc; border: 1px solid #374151; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;">Save code</button>
+                    <button id="aw-btn-stop" style="flex: 1; background: #dc2626; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;">Stop</button>
+                    <button id="aw-btn-delete" style="background: #111827; color: #ef4444; border: 1px solid #374151; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px;" title="Delete current ID">Delete</button>
                 </div>
             `;
 

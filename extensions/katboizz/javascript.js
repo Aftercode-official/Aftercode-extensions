@@ -20,7 +20,7 @@
   
   function getStorageVariable(id) {
     const stage = Scratch.vm.runtime.getTargetForStage();
-    const varName = '__afteros_' + id;
+    const varName = '__Javascript_' + id;
     return stage.lookupOrCreateVariable(varName, varName);
   }
 
@@ -91,7 +91,7 @@
       border: 1px solid #332f00; border-radius: 6px; margin-bottom: 12px;
       flex-shrink: 0; box-sizing: border-box;
     `;
-    titleBar.innerHTML = '<span style="line-height: 40px;">AfterOS v1.0.0 — Terminal & Kernel</span>';
+    titleBar.innerHTML = '<span style="line-height: 40px;">Javascript v2.0.0 — Terminal & Kernel</span>';
 
     const controls = document.createElement('div');
     const closeBtn = document.createElement('span');
@@ -122,7 +122,7 @@
 
     const prompt = document.createElement('span');
     prompt.className = 'prompt';
-    prompt.textContent = 'user@afteros:~$';
+    prompt.textContent = '';
     prompt.style.cssText = 'color: #ffd700; margin-right: 10px; white-space: nowrap; font-weight: bold; user-select: none;';
 
     const input = document.createElement('input');
@@ -146,7 +146,7 @@
     
     function logCommand(cmd) {
       const line = document.createElement('div');
-      line.innerHTML = `<span style="color: #ffd700; font-weight: bold;">user@afteros:~$</span> ${escapeHtml(cmd).replace(/\n/g, '<br>')}`;
+      line.innerHTML = `<span style="color: #ffd700; font-weight: bold;"></span> ${escapeHtml(cmd).replace(/\n/g, '<br>')}`;
       historyDiv.appendChild(line);
     }
 
@@ -174,7 +174,7 @@
     }
 
     registerCommand('help', () => {
-      logOutput('AfterOS Terminal Environment');
+      logOutput('Terminal Environment');
       logOutput('');
       logOutput(`Available commands: ${[...commands.keys()].join(', ')}`);
     }, 'Show available commands');
@@ -187,22 +187,7 @@
     registerCommand('date', () => logOutput(new Date().toString()), 'Show current date');
     registerCommand('clear', () => { historyDiv.innerHTML = ''; }, 'Clear terminal history');
 
-    registerCommand('neofetch', () => {
-      logOutput("Welcome to the Terminal. Type 'help' for commands. BASED ON JAVASCRIPT.");
-      const art = [
-        "       /\\        ",
-        "      /  \\       user@afterOS",
-        "     / /\\ \\      -----------------",
-        "    / /__\\ \\     OS: AfterOS x86_64 Web",
-        "   / /----\\ \\    Host: Browser Terminal",
-        "  /_/      \\_\\   Kernel: JS Unsandboxed v1.0",
-        "                 Uptime: Just booted",
-        "                 Shell: AfterOS Shell",
-        "                 Memory: Optimized"
-      ];
-      logOutput(art.join('\n'));
-    }, 'Display system info');
-
+    logOutput("Welcome to the Terminal. Type 'help' for commands. BASED ON JAVASCRIPT.");
     
     registerCommand('editor', (args) => {
       const mode = args[0] ? args[0].toLowerCase() : '';
@@ -220,9 +205,9 @@
         
         const existingCode = readCode(targetId);
         if (existingCode && existingCode.trim().length > 0) {
-          logOutput(`[IDE] Loading saved ID code: '${targetId}'`);
+          logOutput(`Loading saved ID code: '${targetId}'`);
         } else {
-          logOutput(`[IDE] Creating new JS code space. Saved ID: '${targetId}'`);
+          logOutput(`Creating new JS code space. Saved ID: '${targetId}'`);
         }
 
         let win = document.createElement('div');
@@ -233,7 +218,7 @@
 
         let winTitleBar = document.createElement('div');
         winTitleBar.style.cssText = 'height:40px; min-height:40px; max-height:40px; background:#161616; cursor:move; display:flex; align-items:center; justify-content:space-between; padding:0 14px; color:#ffd700; font-size:14px; font-weight:bold; border:1px solid #332f00; border-radius:6px; margin-bottom:10px; flex-shrink:0; box-sizing:border-box;';
-        winTitleBar.innerHTML = `<span style="line-height: 40px;">AfterOS IDE - [${targetId}]</span>`;
+        winTitleBar.innerHTML = `<span style="line-height: 40px;">Javascript editor - [${targetId}]</span>`;
 
         let winClose = document.createElement('span');
         winClose.textContent = '✕';
@@ -262,7 +247,7 @@
         saveRunBtn.onclick = () => {
           const codeToRun = textArea.value;
           writeCode(targetId, codeToRun);
-          logOutput(`[IDE] code for ID '${targetId}' has been saved and updated in Scratch storage.`);
+          logOutput(`[Excute] code for ID '${targetId}' has been saved and updated in Scratch storage.`);
 
           try {
             const result = new Function(codeToRun)();
@@ -361,11 +346,10 @@
     });
     document.addEventListener('mouseup', () => { isDragging = false; });
 
-    processCommand('neofetch');
   }
 
   
-  class AfterOSIDEExtension {
+  class TerminalJavascript {
     getInfo() {
       return {
         id: 'javascript',
@@ -522,5 +506,5 @@
     }
   }
 
-  Scratch.extensions.register(new AfterOSIDEExtension());
+  Scratch.extensions.register(new TerminalJavascript());
 })(Scratch);
