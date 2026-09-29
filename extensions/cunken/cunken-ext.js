@@ -1,4 +1,4 @@
-// Name: Cunken Toolbox
+// Name: Asset Downloader & Temp Vars
 // ID: assetDownloaderTempVars
 // Description: some stuff from cunken idk
 // By: Cunken <https://turbows.pages.dev/users/cunken_py>
