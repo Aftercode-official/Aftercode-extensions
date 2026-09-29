@@ -1,4 +1,4 @@
-// Name: Collaborative Coding
+// Name: DANV Collaborative Coding
 // ID: liveblockscollab
 // Description: Thật phiền phức khi phải làm tất cả mọi thứ trong dự án một mình. Tiện ích mở rộng này cho phép bạn bè cùng vào chỉnh sửa dự án của bạn, khai phá sức mạnh của cộng tác.
 // By: StudioDANV <https://turbows.pages.dev/users/StudioDANV>
