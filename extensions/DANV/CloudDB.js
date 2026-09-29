@@ -1,6 +1,6 @@
-// Name: DANV Cloud DB
+// Name: DANV Realtime Cloud Variables
 // ID: danvCloudDB
-// Description: công cụ lưu biến data và json vào Server database
+// Description: Cung cấp chức năng biến lưu trữ đám mây cho dự án. Tạo ra các chức năng điểm số, kết nối mọi người với một biến số nhưng mọi người có thể sử dụng.
 // By: StudioDANV <https://turbows.pages.dev/users/StudioDANV>
 // License: MIT
 
