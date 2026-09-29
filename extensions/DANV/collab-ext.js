@@ -876,6 +876,47 @@
         }
     }
 
+    // Màu riêng cho từng người dùng (theo connectionId)
+function getUserColor(id) {
+    const colors = ['#4C97FF', '#FF6680', '#FFAB19', '#59C059', '#9966FF', '#FF8C1A', '#4CBFE6', '#FF5959'];
+    return colors[Math.abs(id) % colors.length];
+}
+
+// Tạo con trỏ gồm chấm tròn + nhãn tên
+function createCursorElement(connectionId) {
+    const color = getUserColor(connectionId);
+
+    const el = document.createElement('div');
+    el.style.cssText = `
+        position: absolute; left: 0; top: 0;
+        transition: left 0.1s linear, top 0.1s linear;
+        pointer-events: none; z-index: 999999;
+    `;
+
+    const dot = document.createElement('div');
+    dot.style.cssText = `
+        position: absolute; width: 13px; height: 13px;
+        background: ${color}; border: 2px solid #fff; border-radius: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    `;
+
+    const label = document.createElement('div');
+    label.className = 'collab-cursor-name';
+    label.style.cssText = `
+        position: absolute; left: 10px; top: 8px;
+        background: ${color}; color: #fff;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 11px; font-weight: 600; line-height: 1;
+        padding: 3px 7px; border-radius: 4px; white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    `;
+
+    el.appendChild(dot);
+    el.appendChild(label);
+    return el;
+}
+
     function getSyncKey(target) {
         return target.isStage ? "_STAGE_" : target.sprite.name;
     }
@@ -1571,17 +1612,21 @@
                     others.forEach(user => {
                         const p = user.presence;
                         if (p && p.cursor) {
-                            const cid = user.connectionId;
-                            activeIds.add(cid);
-                            let el = cursorElements.get(cid);
-                            if (!el) {
-                                el = document.createElement('div');
-                                el.style.cssText = `position:absolute; width:13px; height:13px; background:#4C97FF; border:2px solid #fff; border-radius:50%; transform:translate(-50%,-50%); transition: left 0.1s linear, top 0.1s linear; box-shadow: 0 2px 4px rgba(0,0,0,0.4); pointer-events: none; z-index: 999999;`;
-                                cursorsContainer.appendChild(el);
-                                cursorElements.set(cid, el);
-                            }
-                            el.style.left = p.cursor.x + 'px'; el.style.top = p.cursor.y + 'px';
+                        const cid = user.connectionId;
+                        activeIds.add(cid);
+                        let el = cursorElements.get(cid);
+                        if (!el) {
+                            el = createCursorElement(cid);
+                            cursorsContainer.appendChild(el);
+                            cursorElements.set(cid, el);
                         }
+                        // Cập nhật tên (dùng textContent để tránh chèn HTML độc hại)
+                        const labelEl = el.querySelector('.collab-cursor-name');
+                        if (labelEl) labelEl.textContent = p.name || `Người dùng #${cid}`;
+
+                        el.style.left = p.cursor.x + 'px';
+                        el.style.top = p.cursor.y + 'px';
+                    }
 
                         if (p && p.editingCostume && (now - p.editingCostume.timestamp < 10000)) {
                             if (currentSyncKey && p.editingCostume.spriteKey === currentSyncKey) {
