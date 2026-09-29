@@ -1,5 +1,6 @@
 [
   // This file supports comments
+  "DANV/collab-ext",
   "cunken/cunken-ext",
   "DANV/CloudDB",
   "katboizz/Bytebeat-player",
