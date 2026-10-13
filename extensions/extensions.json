@@ -1,17 +1,14 @@
 [
   // This file supports comments
-  "DANV/collab-ext",
-  "cunken/cunken-ext",
-  "DANV/CloudDB",
   "katboizz/Bytebeat-player",
   "katboizz/Extension-builder",
   "katboizz/javascript",
   "katboizz/Visualizer",
-  "katboizz/Extra effects",
-  "katboizz/fake windows v2",
-  "katboizz/Counter Expanded",
-  "katboizz/css style",
+  "katboizz/Extra-effects",
+  "katboizz/DOM-tools",
   "obviousAlexC/shader",
   "_kitty-the-cat_/Web-Screen",
-  "DANV/WOW-extension"
+  "DANV/collab-ext",
+  "cunken/cunken-ext",
+  "DANV/CloudDB"
 ]
