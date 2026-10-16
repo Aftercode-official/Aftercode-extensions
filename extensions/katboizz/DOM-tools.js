@@ -1,6 +1,6 @@
 // Name: DOM Tools
 // ID: DOMTools
-// Description: Tạo và quản lý các element DOM, modal, và sự kiện click
+// Description: Create and manage DOM elements, modals, and click events
 // By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // License: MIT
 (function(Scratch) {
