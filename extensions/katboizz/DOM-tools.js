@@ -12,9 +12,10 @@
 
   class DOMTools {
     constructor() {
-      this.createdElements = new Map();   
-      this.clickListeners = new Map();    
-      this.modalBackups = new Map();      
+      this.createdElements = new Map();
+      this.clickListeners = new Map();
+      this.modalBackups = new Map();
+      this.dragListeners = new Map();
     }
 
     getInfo() {
@@ -24,11 +25,10 @@
         color1: '#4C97FF',
         color2: '#3373CC',
         blocks: [
-        
           {
             opcode: 'createElement',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Tạo [TAG] id [ID] nội dung [CONTENT] trong [PARENT]',
+            text: 'Create [TAG] id [ID] content [CONTENT] in [PARENT]',
             arguments: {
               TAG: { type: Scratch.ArgumentType.STRING, defaultValue: 'div' },
               ID:  { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
@@ -39,7 +39,7 @@
           {
             opcode: 'createElementHTML',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Tạo HTML id [ID] nội dung [HTML] trong [PARENT]',
+            text: 'Create HTML id [ID] content [HTML] in [PARENT]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myBox' },
               HTML: { type: Scratch.ArgumentType.STRING, defaultValue: '<b>Hi</b>' },
@@ -47,9 +47,24 @@
             }
           },
           {
+            opcode: 'createHTMLFrame',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'Create HTML frame id [ID] width [W] height [H] content [HTML] in [PARENT]',
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myFrame' },
+              W: { type: Scratch.ArgumentType.NUMBER, defaultValue: 400 },
+              H: { type: Scratch.ArgumentType.NUMBER, defaultValue: 300 },
+              HTML: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: '<!DOCTYPE html><html><head><style>body{font-family:sans-serif;margin:0;padding:16px;background:#111;color:#fff;}</style></head><body><h1>Hello</h1></body></html>'
+              },
+              PARENT: { type: Scratch.ArgumentType.STRING, defaultValue: 'body' }
+            }
+          },
+          {
             opcode: 'removeElement',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Xóa element id [ID]',
+            text: 'Remove element id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' }
             }
@@ -57,33 +72,36 @@
           {
             opcode: 'removeAllCreated',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Xóa tất cả element đã tạo'
+            text: 'Remove all created elements'
           },
 
           '---',
-         
+
           {
-            opcode: 'setHTML',
+            opcode: 'setFrameHTML',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Set HTML cho id [ID] thành [HTML]',
+            text: 'Set HTML frame id [ID] content [HTML]',
             arguments: {
-              ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
-              HTML: { type: Scratch.ArgumentType.STRING, defaultValue: '<b>Nội dung mới</b>' }
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myFrame' },
+              HTML: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: '<!DOCTYPE html><html><body><h1>Updated</h1></body></html>'
+              }
             }
           },
           {
             opcode: 'appendHTML',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Thêm HTML vào cuối id [ID]: [HTML]',
+            text: 'Append HTML to id [ID]: [HTML]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
-              HTML: { type: Scratch.ArgumentType.STRING, defaultValue: '<p>Thêm</p>' }
+              HTML: { type: Scratch.ArgumentType.STRING, defaultValue: '<p>Append</p>' }
             }
           },
           {
             opcode: 'getHTML',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'Lấy HTML của id [ID]',
+            text: 'Get HTML of id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' }
             }
@@ -91,7 +109,7 @@
           {
             opcode: 'setText',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Set text cho id [ID] thành [TEXT]',
+            text: 'Set text of id [ID] to [TEXT]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
               TEXT: { type: Scratch.ArgumentType.STRING, defaultValue: 'Hello' }
@@ -99,11 +117,11 @@
           },
 
           '---',
-          
+
           {
             opcode: 'setStyle',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Set style id [ID] thuộc tính [PROP] = [VALUE]',
+            text: 'Set style of id [ID] property [PROP] = [VALUE]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
               PROP: {
@@ -117,7 +135,7 @@
           {
             opcode: 'setStylesJSON',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Set nhiều style id [ID] từ JSON [JSON]',
+            text: 'Set multiple styles of id [ID] from JSON [JSON]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
               JSON: {
@@ -129,7 +147,7 @@
           {
             opcode: 'setPosition',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Set vị trí id [ID] x [X] y [Y] đơn vị [UNIT]',
+            text: 'Set position of id [ID] x [X] y [Y] unit [UNIT]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
               X: { type: Scratch.ArgumentType.NUMBER, defaultValue: 0 },
@@ -144,7 +162,7 @@
           {
             opcode: 'setSize',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Set kích thước id [ID] rộng [W] cao [H] đơn vị [UNIT]',
+            text: 'Set size of id [ID] width [W] height [H] unit [UNIT]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
               W: { type: Scratch.ArgumentType.NUMBER, defaultValue: 100 },
@@ -159,7 +177,7 @@
           {
             opcode: 'getStyle',
             blockType: Scratch.BlockType.REPORTER,
-            text: 'Lấy style id [ID] thuộc tính [PROP]',
+            text: 'Get style of id [ID] property [PROP]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' },
               PROP: {
@@ -171,11 +189,54 @@
           },
 
           '---',
-          
+
+          {
+            opcode: 'runJSOnElement',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'Run JavaScript [CODE] on id [ID]',
+            arguments: {
+              CODE: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: 'element.style.background = "red";'
+              },
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' }
+            }
+          },
+          {
+            opcode: 'runJSGlobal',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'Run JavaScript [CODE]',
+            arguments: {
+              CODE: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: 'console.log("Hello from DOM Tools");'
+              }
+            }
+          },
+          {
+            opcode: 'setJSVariable',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'Set JavaScript variable [NAME] to [VALUE]',
+            arguments: {
+              NAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'myVar' },
+              VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: 'hello' }
+            }
+          },
+          {
+            opcode: 'getJSVariable',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'Get JavaScript variable [NAME]',
+            arguments: {
+              NAME: { type: Scratch.ArgumentType.STRING, defaultValue: 'myVar' }
+            }
+          },
+
+          '---',
+
           {
             opcode: 'onClick',
             blockType: Scratch.BlockType.HAT,
-            text: 'Khi click vào element id [ID]',
+            text: 'When element id [ID] is clicked',
             isEdgeActivated: false,
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' }
@@ -184,7 +245,7 @@
           {
             opcode: 'registerClick',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Bật bắt click cho id [ID]',
+            text: 'Enable click detection for id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' }
             }
@@ -192,52 +253,52 @@
           {
             opcode: 'unregisterClick',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Tắt bắt click cho id [ID]',
+            text: 'Disable click detection for id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myDiv' }
             }
           },
 
           '---',
-          
+
           {
             opcode: 'createModal',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Tạo modal id [ID] tiêu đề [TITLE] nội dung [BODY]',
+            text: 'Create modal id [ID] title [TITLE] body [BODY]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myModal' },
-              TITLE: { type: Scratch.ArgumentType.STRING, defaultValue: 'Thông báo' },
-              BODY: { type: Scratch.ArgumentType.STRING, defaultValue: 'Nội dung...' }
+              TITLE: { type: Scratch.ArgumentType.STRING, defaultValue: 'Notice' },
+              BODY: { type: Scratch.ArgumentType.STRING, defaultValue: 'Content...' }
             }
           },
           {
             opcode: 'applyHTMLToModal',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Áp dụng HTML code [HTML] lên modal id [ID]',
+            text: 'Apply HTML code [HTML] to modal id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myModal' },
               HTML: {
                 type: Scratch.ArgumentType.STRING,
-                defaultValue: '<h2>Tiêu đề</h2><p>Nội dung modal</p>'
+                defaultValue: '<h2>Title</h2><p>Modal content</p>'
               }
             }
           },
           {
             opcode: 'applyHTMLToModalBody',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Áp dụng HTML code [HTML] vào thân modal id [ID]',
+            text: 'Apply HTML code [HTML] to modal body id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myModal' },
               HTML: {
                 type: Scratch.ArgumentType.STRING,
-                defaultValue: '<p>Nội dung thân modal</p>'
+                defaultValue: '<p>Modal body content</p>'
               }
             }
           },
           {
             opcode: 'modalHasHTML',
             blockType: Scratch.BlockType.BOOLEAN,
-            text: 'Modal id [ID] có chứa HTML?',
+            text: 'Modal id [ID] has HTML?',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myModal' }
             }
@@ -245,7 +306,7 @@
           {
             opcode: 'showModal',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Hiện modal id [ID]',
+            text: 'Show modal id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myModal' }
             }
@@ -253,7 +314,7 @@
           {
             opcode: 'hideModal',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Ẩn modal id [ID]',
+            text: 'Hide modal id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myModal' }
             }
@@ -261,7 +322,7 @@
           {
             opcode: 'toggleModal',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'Đảo trạng thái modal id [ID]',
+            text: 'Toggle modal id [ID]',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myModal' }
             }
@@ -269,7 +330,7 @@
           {
             opcode: 'isModalVisible',
             blockType: Scratch.BlockType.BOOLEAN,
-            text: 'Modal id [ID] đang hiện?',
+            text: 'Modal id [ID] is visible?',
             arguments: {
               ID: { type: Scratch.ArgumentType.STRING, defaultValue: 'myModal' }
             }
@@ -296,10 +357,9 @@
       };
     }
 
-    
     _getEl(id) {
       const el = document.getElementById(String(id));
-      if (!el) console.warn(`[DOM Tools] Không tìm thấy element: #${id}`);
+      if (!el) console.warn(`[DOM Tools] Element not found: #${id}`);
       return el;
     }
 
@@ -316,17 +376,46 @@
         el.removeEventListener('click', handler);
         this.clickListeners.delete(id);
       }
+      if (this.dragListeners.has(id)) {
+        const data = this.dragListeners.get(id);
+        data.handle.removeEventListener('mousedown', data.onDown);
+        this.dragListeners.delete(id);
+      }
       this.modalBackups.delete(id);
     }
 
-    
+    _fitChildren(el) {
+      const hasFixedHeight = el.style.height && el.style.height !== 'auto';
+      for (const child of el.children) {
+        const tag = child.tagName.toLowerCase();
+        if (['script', 'style', 'link', 'meta', 'br', 'hr'].includes(tag)) continue;
+
+        child.style.boxSizing = 'border-box';
+        child.style.maxWidth = '100%';
+
+        if (hasFixedHeight) {
+          child.style.maxHeight = '100%';
+        }
+
+        if (['img', 'video', 'iframe', 'canvas', 'svg', 'object', 'embed'].includes(tag)) {
+          child.style.width = child.style.width || '100%';
+          child.style.height = child.style.height || 'auto';
+          child.style.objectFit = child.style.objectFit || 'contain';
+          child.style.display = child.style.display || 'block';
+        } else {
+          if (!child.style.width) child.style.width = '100%';
+          if (hasFixedHeight && !child.style.height) child.style.height = '100%';
+        }
+      }
+    }
+
     createElement(args) {
       const tag = String(args.TAG).trim() || 'div';
       const id = String(args.ID).trim();
       const parent = this._resolveParent(args.PARENT);
 
       if (id && document.getElementById(id)) {
-        console.warn(`[DOM Tools] id #${id} đã tồn tại, bỏ qua.`);
+        console.warn(`[DOM Tools] id #${id} already exists, skipped.`);
         return;
       }
 
@@ -343,16 +432,66 @@
       const parent = this._resolveParent(args.PARENT);
 
       if (id && document.getElementById(id)) {
-        console.warn(`[DOM Tools] id #${id} đã tồn tại, bỏ qua.`);
+        console.warn(`[DOM Tools] id #${id} already exists, skipped.`);
         return;
       }
 
       const wrapper = document.createElement('div');
       if (id) wrapper.id = id;
+
+      wrapper.style.boxSizing = 'border-box';
+      wrapper.style.display = 'block';
+      wrapper.style.overflow = 'auto';
+
       wrapper.innerHTML = String(args.HTML);
+      this._fitChildren(wrapper);
 
       parent.appendChild(wrapper);
       if (id) this.createdElements.set(id, wrapper);
+    }
+
+    createHTMLFrame(args) {
+      const id = String(args.ID).trim();
+      const html = String(args.HTML);
+      const parent = this._resolveParent(args.PARENT);
+      const w = Number(args.W) || 400;
+      const h = Number(args.H) || 300;
+
+      if (id && document.getElementById(id)) {
+        console.warn(`[DOM Tools] id #${id} already exists, skipped.`);
+        return;
+      }
+
+      const iframe = document.createElement('iframe');
+      if (id) iframe.id = id;
+      iframe.style.border = '0';
+      iframe.style.display = 'block';
+      iframe.style.boxSizing = 'border-box';
+      iframe.style.width = `${w}px`;
+      iframe.style.height = `${h}px`;
+      iframe.style.background = '#fff';
+
+      parent.appendChild(iframe);
+
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(html);
+      doc.close();
+
+      if (id) this.createdElements.set(id, iframe);
+    }
+
+    setFrameHTML(args) {
+      const el = this._getEl(args.ID);
+      if (!el) return;
+      if (el.tagName.toLowerCase() !== 'iframe') {
+        console.warn(`[DOM Tools] #${args.ID} is not an iframe.`);
+        return;
+      }
+      const doc = el.contentDocument || el.contentWindow.document;
+      doc.open();
+      doc.write(String(args.HTML));
+      doc.close();
     }
 
     removeElement(args) {
@@ -373,22 +512,24 @@
       this.createdElements.clear();
     }
 
-    
-    setHTML(args) {
-      const el = this._getEl(args.ID);
-      if (!el) return;
-      el.innerHTML = String(args.HTML);
-    }
-
     appendHTML(args) {
       const el = this._getEl(args.ID);
       if (!el) return;
       el.insertAdjacentHTML('beforeend', String(args.HTML));
+      this._fitChildren(el);
     }
 
     getHTML(args) {
       const el = this._getEl(args.ID);
       if (!el) return '';
+      if (el.tagName.toLowerCase() === 'iframe') {
+        try {
+          const doc = el.contentDocument || el.contentWindow.document;
+          return doc.documentElement.outerHTML;
+        } catch (e) {
+          return '';
+        }
+      }
       return el.innerHTML;
     }
 
@@ -398,14 +539,17 @@
       el.textContent = String(args.TEXT);
     }
 
-    
     setStyle(args) {
       const el = this._getEl(args.ID);
       if (!el) return;
       try {
         el.style[String(args.PROP)] = String(args.VALUE);
+        const prop = String(args.PROP);
+        if (prop === 'width' || prop === 'height' || prop === 'maxWidth' || prop === 'maxHeight') {
+          this._fitChildren(el);
+        }
       } catch (e) {
-        console.warn('[DOM Tools] Set style lỗi:', e);
+        console.warn('[DOM Tools] Failed to set style:', e);
       }
     }
 
@@ -417,8 +561,9 @@
         for (const k in obj) {
           el.style[k] = obj[k];
         }
+        this._fitChildren(el);
       } catch (e) {
-        console.warn('[DOM Tools] JSON không hợp lệ:', e);
+        console.warn('[DOM Tools] Invalid JSON:', e);
       }
     }
 
@@ -437,6 +582,8 @@
       const unit = String(args.UNIT);
       el.style.width = `${Number(args.W)}${unit}`;
       el.style.height = `${Number(args.H)}${unit}`;
+
+      this._fitChildren(el);
     }
 
     getStyle(args) {
@@ -446,7 +593,41 @@
       return el.style[prop] || getComputedStyle(el)[prop] || '';
     }
 
-    
+    runJSOnElement(args) {
+      const el = this._getEl(args.ID);
+      if (!el) return;
+      const code = String(args.CODE);
+      try {
+        const fn = new Function('element', 'document', 'window', 'Scratch', code);
+        fn(el, document, window, Scratch);
+      } catch (e) {
+        console.warn('[DOM Tools] JS error on element:', e);
+      }
+    }
+
+    runJSGlobal(args) {
+      const code = String(args.CODE);
+      try {
+        const fn = new Function('document', 'window', 'Scratch', code);
+        fn(document, window, Scratch);
+      } catch (e) {
+        console.warn('[DOM Tools] JS error:', e);
+      }
+    }
+
+    setJSVariable(args) {
+      const name = String(args.NAME);
+      const value = String(args.VALUE);
+      if (!window.__domToolsVars) window.__domToolsVars = {};
+      window.__domToolsVars[name] = value;
+    }
+
+    getJSVariable(args) {
+      const name = String(args.NAME);
+      if (!window.__domToolsVars) return '';
+      return window.__domToolsVars[name] ?? '';
+    }
+
     registerClick(args) {
       const id = String(args.ID);
       const el = this._getEl(id);
@@ -454,7 +635,7 @@
 
       if (this.clickListeners.has(id)) return;
 
-      const handler = (e) => {
+      const handler = () => {
         if (Scratch.vm && Scratch.vm.runtime) {
           Scratch.vm.runtime.startHats('DOMTools_onClick', { ID: id });
         }
@@ -478,14 +659,13 @@
       return true;
     }
 
-    
     createModal(args) {
       const id = String(args.ID).trim();
       const title = String(args.TITLE);
       const body = String(args.BODY);
 
       if (document.getElementById(id)) {
-        console.warn(`[DOM Tools] modal #${id} đã tồn tại`);
+        console.warn(`[DOM Tools] modal #${id} already exists`);
         return;
       }
 
@@ -518,20 +698,16 @@
       this.createdElements.set(id, modal);
       this.modalBackups.set(id, 'none');
 
-      
       modal.querySelector('.dom-tools-modal-close').addEventListener('click', () => {
         this.hideModal({ ID: id });
       });
 
-      
       modal.addEventListener('click', (e) => {
         if (e.target === modal) this.hideModal({ ID: id });
       });
 
-      
       this.showModal({ ID: id });
     }
-
 
     applyHTMLToModal(args) {
       const id = String(args.ID);
@@ -539,14 +715,11 @@
       const el = this._getEl(id);
       if (!el) return;
 
-      
       el.dataset.hasHtml = 'true';
 
-      
       if (/dom-tools-modal-content/i.test(html)) {
         el.innerHTML = html;
       } else {
-        
         el.innerHTML = `
           <div class="dom-tools-modal-content" style="
             background:#fff;border-radius:10px;padding:20px;
@@ -559,19 +732,16 @@
         `;
       }
 
-      
       const closeBtn = el.querySelector('.dom-tools-modal-close');
       if (closeBtn) {
         closeBtn.addEventListener('click', () => this.hideModal({ ID: id }));
       }
 
-      
       el.addEventListener('click', (e) => {
         if (e.target === el) this.hideModal({ ID: id });
       });
     }
 
-    
     applyHTMLToModalBody(args) {
       const id = String(args.ID);
       const html = String(args.HTML);
@@ -580,7 +750,6 @@
 
       let body = el.querySelector('.dom-tools-modal-body');
       if (!body) {
-       
         const content = el.querySelector('.dom-tools-modal-content') || el;
         body = document.createElement('div');
         body.className = 'dom-tools-modal-body';
@@ -590,7 +759,6 @@
       el.dataset.hasHtml = 'true';
     }
 
-    
     modalHasHTML(args) {
       const el = this._getEl(args.ID);
       if (!el) return false;
