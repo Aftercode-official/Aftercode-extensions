@@ -16,6 +16,7 @@
       this.clickListeners = new Map();
       this.modalBackups = new Map();
       this.dragListeners = new Map();
+      this.blobUrls = new Set(); // Quản lý bộ nhớ cho Blob URL
     }
 
     getInfo() {
@@ -471,8 +472,11 @@
       iframe.style.height = `${h}px`;
       iframe.style.background = '#fff';
 
-      // Sử dụng srcdoc để chạy HTML/CSS/JS
-      iframe.srcdoc = html;
+      // Chuyển sang dùng Blob URL thay vì srcdoc
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      this.blobUrls.add(url);
+      iframe.src = url;
 
       parent.appendChild(iframe);
       if (id) this.createdElements.set(id, iframe);
@@ -486,28 +490,30 @@
         return;
       }
 
-      // Cập nhật nội dung mới
-      el.srcdoc = String(args.HTML);
+      const html = String(args.HTML);
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      this.blobUrls.add(url);
+
+      // Thu hồi URL cũ để tránh rò rỉ bộ nhớ
+      if (el.src && el.src.startsWith('blob:')) {
+        URL.revokeObjectURL(el.src);
+        this.blobUrls.delete(el.src);
+      }
+
+      el.src = url;
     }
-
-       setFrameHTML(args) {
-             const el = this._getEl(args.ID);
-             if (!el) return;
-             if (el.tagName.toLowerCase() !== 'iframe') {
-               console.warn(`[DOM Tools] #${args.ID} is not an iframe.`);
-               return;
-             }
-
-             // Cập nhật Blob URL mới
-             const html = String(args.HTML);
-             const blob = new Blob([html], { type: 'text/html' });
-             el.src = URL.createObjectURL(blob);
-           }
 
     removeElement(args) {
       const id = String(args.ID);
       const el = this._getEl(id);
       if (!el) return;
+
+      // Thu hồi Blob URL nếu là iframe
+      if (el.tagName.toLowerCase() === 'iframe' && el.src && el.src.startsWith('blob:')) {
+        URL.revokeObjectURL(el.src);
+        this.blobUrls.delete(el.src);
+      }
 
       this._cleanupElement(id, el);
       el.remove();
@@ -516,6 +522,10 @@
 
     removeAllCreated() {
       for (const [id, el] of this.createdElements.entries()) {
+        if (el.tagName.toLowerCase() === 'iframe' && el.src && el.src.startsWith('blob:')) {
+          URL.revokeObjectURL(el.src);
+          this.blobUrls.delete(el.src);
+        }
         this._cleanupElement(id, el);
         el.remove();
       }
