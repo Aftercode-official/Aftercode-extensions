@@ -453,15 +453,12 @@
 
     createHTMLFrame(args) {
       const id = String(args.ID).trim();
-      const html = String(args.HTML);
+      const htmlCode = String(args.HTML); // Đã đổi tên biến thành htmlCode
       const parent = this._resolveParent(args.PARENT);
       const w = Number(args.W) || 400;
       const h = Number(args.H) || 300;
 
-      if (id && document.getElementById(id)) {
-        console.warn(`[DOM Tools] id #${id} already exists, skipped.`);
-        return;
-      }
+      if (id && document.getElementById(id)) return;
 
       const iframe = document.createElement('iframe');
       if (id) iframe.id = id;
@@ -472,11 +469,11 @@
       iframe.style.height = `${h}px`;
       iframe.style.background = '#fff';
 
-      // Chuyển sang dùng Blob URL thay vì srcdoc
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      this.blobUrls.add(url);
-      iframe.src = url;
+      // XÓA BỎ sandbox: Để iframe chạy Unsandbox hoàn toàn
+      iframe.removeAttribute('sandbox');
+
+      // Sử dụng srcdoc với biến htmlCode
+      iframe.srcdoc = htmlCode;
 
       parent.appendChild(iframe);
       if (id) this.createdElements.set(id, iframe);
