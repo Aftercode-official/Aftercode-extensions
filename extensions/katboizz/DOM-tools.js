@@ -469,9 +469,6 @@
       iframe.style.height = `${h}px`;
       iframe.style.background = '#fff';
 
-      // XÓA BỎ sandbox: Để iframe chạy Unsandbox hoàn toàn
-      iframe.removeAttribute('sandbox');
-
       // Sử dụng srcdoc với biến htmlCode
       iframe.srcdoc = htmlCode;
 
