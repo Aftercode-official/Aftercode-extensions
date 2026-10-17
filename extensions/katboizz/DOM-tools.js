@@ -470,6 +470,7 @@
       iframe.style.background = '#fff';
 
       // Sử dụng srcdoc với biến htmlCode
+      iframe.sandbox = 'allow-scripts allow-modals allow-same-origin';
       iframe.srcdoc = htmlCode;
 
       parent.appendChild(iframe);
