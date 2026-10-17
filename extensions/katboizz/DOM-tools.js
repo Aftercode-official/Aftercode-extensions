@@ -451,48 +451,47 @@
     }
 
     createHTMLFrame(args) {
-      const id = String(args.ID).trim();
-      const html = String(args.HTML);
-      const parent = this._resolveParent(args.PARENT);
-      const w = Number(args.W) || 400;
-      const h = Number(args.H) || 300;
+         const id = String(args.ID).trim();
+         const html = String(args.HTML);
+         const parent = this._resolveParent(args.PARENT);
+         const w = Number(args.W) || 400;
+         const h = Number(args.H) || 300;
 
-      if (id && document.getElementById(id)) {
-        console.warn(`[DOM Tools] id #${id} already exists, skipped.`);
-        return;
-      }
+         if (id && document.getElementById(id)) {
+           console.warn(`[DOM Tools] id #${id} already exists, skipped.`);
+           return;
+         }
 
-      const iframe = document.createElement('iframe');
-      if (id) iframe.id = id;
-      iframe.style.border = '0';
-      iframe.style.display = 'block';
-      iframe.style.boxSizing = 'border-box';
-      iframe.style.width = `${w}px`;
-      iframe.style.height = `${h}px`;
-      iframe.style.background = '#fff';
+         const iframe = document.createElement('iframe');
+         if (id) iframe.id = id;
+         iframe.style.border = '0';
+         iframe.style.display = 'block';
+         iframe.style.boxSizing = 'border-box';
+         iframe.style.width = `${w}px`;
+         iframe.style.height = `${h}px`;
+         iframe.style.background = '#fff';
 
-      parent.appendChild(iframe);
+         // Tạo Blob URL để đảm bảo JS bên trong chạy
+         const blob = new Blob([html], { type: 'text/html' });
+         iframe.src = URL.createObjectURL(blob);
 
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      doc.open();
-      doc.write(html);
-      doc.close();
+         parent.appendChild(iframe);
+         if (id) this.createdElements.set(id, iframe);
+       }
 
-      if (id) this.createdElements.set(id, iframe);
-    }
+       setFrameHTML(args) {
+             const el = this._getEl(args.ID);
+             if (!el) return;
+             if (el.tagName.toLowerCase() !== 'iframe') {
+               console.warn(`[DOM Tools] #${args.ID} is not an iframe.`);
+               return;
+             }
 
-    setFrameHTML(args) {
-      const el = this._getEl(args.ID);
-      if (!el) return;
-      if (el.tagName.toLowerCase() !== 'iframe') {
-        console.warn(`[DOM Tools] #${args.ID} is not an iframe.`);
-        return;
-      }
-      const doc = el.contentDocument || el.contentWindow.document;
-      doc.open();
-      doc.write(String(args.HTML));
-      doc.close();
-    }
+             // Cập nhật Blob URL mới
+             const html = String(args.HTML);
+             const blob = new Blob([html], { type: 'text/html' });
+             el.src = URL.createObjectURL(blob);
+           }
 
     removeElement(args) {
       const id = String(args.ID);
