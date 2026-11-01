@@ -453,7 +453,7 @@
 
     createHTMLFrame(args) {
       const id = String(args.ID).trim();
-      const htmlCode = String(args.HTML); // Đã đổi tên biến thành htmlCode
+      const htmlCode = String(args.HTML);
       const parent = this._resolveParent(args.PARENT);
       const w = Number(args.W) || 400;
       const h = Number(args.H) || 300;
@@ -469,8 +469,10 @@
       iframe.style.height = `${h}px`;
       iframe.style.background = '#fff';
 
-      // Sử dụng srcdoc với biến htmlCode
-      iframe.sandbox = 'allow-scripts allow-modals allow-same-origin';
+
+      iframe.removeAttribute('sandbox');
+
+
       iframe.srcdoc = htmlCode;
 
       parent.appendChild(iframe);
@@ -485,18 +487,8 @@
         return;
       }
 
-      const html = String(args.HTML);
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      this.blobUrls.add(url);
-
-      // Thu hồi URL cũ để tránh rò rỉ bộ nhớ
-      if (el.src && el.src.startsWith('blob:')) {
-        URL.revokeObjectURL(el.src);
-        this.blobUrls.delete(el.src);
-      }
-
-      el.src = url;
+      // CẬP NHẬT BẰNG SRCDOC LUÔN
+      el.srcdoc = String(args.HTML);
     }
 
     removeElement(args) {
