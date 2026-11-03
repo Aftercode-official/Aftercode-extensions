@@ -2,7 +2,7 @@
 
 User-contributed unsandboxed extension gallery for TurboWarp.
 
-https://aftercode-extensions.vercel.app/
+https://aftercode-official.github.io/Aftercode-extensions/
 
 ## Contributing
 
