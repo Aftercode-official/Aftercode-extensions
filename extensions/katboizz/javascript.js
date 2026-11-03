@@ -222,11 +222,7 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
           'line-height: 1.4;' +
           'color-scheme: Dark;' +
           'color: #e06c75;' +
-          'resize: both;' +
-          'min-width: 200px;' +
-          'min-height: 100px;' +
-          'max-width: 900px;' +
-          'max-height: 600px;'
+          'resize: both;'
         );
         const gutter = document.createElement('div');
         gutter.setAttribute('style',
@@ -268,7 +264,7 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
           'color-scheme: Dark;'
         );
 
-        
+
         const updateGutter = () => {
           const n = textarea.value.split('\n').length;
           let out = '';
@@ -276,12 +272,12 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
           gutter.textContent = out;
         };
 
-        
+
         textarea.addEventListener('scroll', () => {
           gutter.scrollTop = textarea.scrollTop;
         });
 
-        
+
         textarea.addEventListener('keydown', (e) => {
           e.stopPropagation();
           if (e.key === 'Tab') {
@@ -301,12 +297,12 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
         });
         textarea.addEventListener('mousedown', (e) => e.stopPropagation());
 
-        
+
         wrap.appendChild(gutter);
         wrap.appendChild(textarea);
         textareaHolder.appendChild(wrap);
 
-        
+
         this._textareaHolder = textareaHolder;
         this._textarea = textarea;
         this._gutter = gutter;
@@ -325,7 +321,7 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
           }
           if (window.ResizeObserver) {
             this._ro = new ResizeObserver(() => {
-              
+
               if (this._wrap) {
                 const w = this._wrap.offsetWidth;
                 const h = this._wrap.offsetHeight;
