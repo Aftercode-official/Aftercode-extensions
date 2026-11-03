@@ -260,7 +260,7 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
       ws.getFlyout().clearOldBlocks_();
       vm.extensionManager.refreshBlocks();
       ws.refreshToolboxSelection_();
-    } catch {/**/}
+    } catch {}
   };
   if (typeof Scratch?.gui === 'object') Scratch.gui.getBlockly().then((Blockly) => gotBlockly(Blockly));
   const xmlEscape = (unsafe) => unsafe.replace(/[<>&'"]/g, c => {
@@ -771,8 +771,9 @@ getInfo() {
         up:   this._dragLogicUp
     };
 
+    let titleBar = null;
     if (args.FRAME !== 'frameless') {
-        const titleBar = document.createElement('div');
+        titleBar = document.createElement('div');
         titleBar.style.height = '30px';
         titleBar.style.background = '#2ECC71';
         titleBar.style.cursor = 'move';
@@ -786,6 +787,7 @@ getInfo() {
         const closeBtn = document.createElement('span');
         closeBtn.textContent = '✕';
         closeBtn.style.cursor = 'pointer';
+        closeBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
         closeBtn.onclick = () => this.closeWindow({ID:id});
 
         titleBar.appendChild(closeBtn);
@@ -800,7 +802,8 @@ getInfo() {
         element: win,
         canvas: canvas,
         sprite: null,
-        iframe: null
+        iframe: null,
+        titleBar: titleBar
     };
 }
 
@@ -836,7 +839,7 @@ getInfo() {
 
         for (const id in this.windows) {
             const data = this.windows[id];
-            if (!data.sprite) continue;
+            if (!data.sprite || !data.canvas) continue;
 
             const drawableID = data.sprite.drawableID;
             if (drawableID == null) continue;
@@ -927,6 +930,7 @@ getInfo() {
     const closeBtn = document.createElement('span');
     closeBtn.textContent = '✕';
     closeBtn.style.cursor = 'pointer';
+    closeBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
     closeBtn.onclick = () => this.closeWindow({ ID: id });
     titleBar.appendChild(closeBtn);
 
@@ -934,6 +938,8 @@ getInfo() {
     iframe.style.flex = '1';
     iframe.style.border = 'none';
     iframe.style.width = '100%';
+    iframe.style.colorScheme = 'normal';
+    iframe.style.background = 'transparent';
     iframe.srcdoc = htmlCode;
 
     win.appendChild(titleBar);
@@ -947,7 +953,8 @@ getInfo() {
         element: win,
         canvas: null,
         sprite: null,
-        iframe: iframe
+        iframe: iframe,
+        titleBar: titleBar
     };
 }
 
@@ -1060,16 +1067,45 @@ getInfo() {
         const prop = String(args.PROP);
         const value = String(args.VALUE);
 
-        if (prop in data.element.style) {
-            data.element.style[prop] = value;
-        } else {
-            data.element.style.setProperty(prop, value);
+        const apply = (node) => {
+            if (!node) return;
+            if (prop in node.style) node.style[prop] = value;
+            else node.style.setProperty(prop, value);
+        };
+
+        apply(data.element);
+
+        if (prop === 'color') {
+            if (data.titleBar) data.titleBar.style.color = value;
+            if (data.iframe) {
+                try {
+                    const doc = data.iframe.contentDocument;
+                    let tag = doc.getElementById('__domwin_color__');
+                    if (!value.trim()) {
+                        if (tag) tag.remove();
+                    } else {
+                        if (!tag) {
+                            tag = doc.createElement('style');
+                            tag.id = '__domwin_color__';
+                            (doc.head || doc.documentElement).appendChild(tag);
+                        }
+                        tag.textContent = `*{color:${value} !important;}`;
+                    }
+                } catch (e) {}
+            }
+            return;
         }
 
-        if (data.iframe) {
-            try {
-                data.iframe.style.setProperty(prop, value);
-            } catch (e) {}
+        if (prop === 'background' || prop === 'backgroundColor') {
+            if (data.iframe) {
+                apply(data.iframe);
+                try {
+                    const doc = data.iframe.contentDocument;
+                    apply(doc.documentElement);
+                    apply(doc.body);
+                } catch (e) {}
+            }
+            if (data.canvas) apply(data.canvas);
         }
     }
 
@@ -1123,12 +1159,13 @@ getInfo() {
             case 'clamp':
                 state.clamp = (raw === 'true' || raw === '1');
                 break;
-            case 'cursor':
+            case 'cursor': {
                 state.cursor = raw;
                 const handle = data.element.querySelector('div[style*="cursor"]')
                     || data.element.firstElementChild;
                 if (handle) handle.style.cursor = raw;
                 break;
+            }
             case 'button':
                 state.button = Number(raw) === 2 ? 2 : 0;
                 break;
@@ -1209,7 +1246,12 @@ getInfo() {
 
         if (data.iframe) {
             try {
-                data.iframe.contentWindow.eval(code);
+                const w = data.iframe.contentWindow;
+                w.__DOMWIN__ = data.element;
+                w.__DOMWIN_IFRAME__ = data.iframe;
+                w.__DOMWIN_ID__ = id;
+                w.__DOMWIN_DATA__ = data;
+                w.eval(code);
             } catch (e) {
                 console.warn('[DOMplugin] runWindowJS (iframe) lỗi:', e);
             }
@@ -1251,15 +1293,12 @@ const inst = runtime[`ext_${extId}`] = new extension();
 if (!state.enabled) return;
 if (e.button !== state.button) return;
 state.isDown = true;
-const rect = win.getBoundingClientRect();
-win.style.left = rect.left + 'px';
-win.style.top = rect.top + 'px';
-win.style.transform = 'none';
-state.startLeft = rect.left;
-state.startTop = rect.top;
+state.startLeft = win.offsetLeft;
+state.startTop = win.offsetTop;
 state.offsetX = e.clientX;
 state.offsetY = e.clientY;
 if (iframe) iframe.style.pointerEvents = 'none';
+if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId);
 e.preventDefault();
 `;
 
