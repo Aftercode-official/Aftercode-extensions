@@ -1,7 +1,7 @@
 // Name: DOM plugin v3
 // ID: DOMplugin
 // Description: Customize DOM element in your project
-// By: katboizz <https://scratch.mit.edu/users/katboizz/>
+// By: katboizz
 // License: MIT
 (function(Scratch) {
   'use strict';
@@ -796,12 +796,9 @@ getInfo() {
             if (data.iframe) data.iframe.style.background = 'transparent';
         }
 
-        // đổi tay cầm kéo: ẩn khung -> kéo bằng canvas; hiện khung -> kéo bằng titleBar
-        if (data.canvas) {
-            const handle = visible ? data.titleBar : data.canvas;
-            try { win._dragCleanup?.(); } catch {}
-            if (handle) this.makeDraggable(win, handle);
-        }
+        // ẩn khung -> không kéo được; hiện khung -> kéo lại bằng titleBar
+        try { win._dragCleanup?.(); } catch {}
+        if (visible && data.titleBar) this.makeDraggable(win, data.titleBar);
     }
 
     setWindowFrame(args) {
