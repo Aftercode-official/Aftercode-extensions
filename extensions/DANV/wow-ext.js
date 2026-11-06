@@ -2,7 +2,6 @@
 // ID: danvWowEconomy
 // Description: Tích hợp hệ thống tiền tệ năng lượng WOW của DANVworkshop vào game
 // By: StudioDANV <https://turboshare.org.uk/users/StudioDANV>
-// By: katboizz <https://scratch.mit.edu/users/katboizz>
 // License: MIT
 
 (function (Scratch) {
