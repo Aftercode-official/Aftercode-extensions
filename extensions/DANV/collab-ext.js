@@ -1,7 +1,7 @@
 // Name: DANV Collaborative Workspace
 // ID: liveblockscollab
 // Description: Nền tảng làm việc nhóm và cộng tác theo thời gian thực dành cho dự án.
-// By: StudioDANV
+// By: StudioDANV <https://turboshare.org.uk/users/StudioDANV>
 // License: MIT
 
 (async function(Scratch) {
@@ -19,7 +19,7 @@
     const CLOUDFLARE_URL = "https://collab-extension.danvws.workers.dev";
 
     // 2. KẾT NỐI THỜI GIAN THỰC (XỬ LÝ CHUỘT, TRÒ CHUYỆN, KHÓA TÀI NGUYÊN)
-    const PUBLIC_API_KEY = "pk_dev_kA8Le_ojSQGAiMqwZu_gKFmMeznbD-5AN28BbxPYRaxYEIXUmc09Ewht7ylMt1JT"; 
+    const PUBLIC_API_KEY = "pk_dev_kA8Le_ojSQGAiMqwZu_gKFmMeznbD-5AN28BbxPYRaxYEIXUmc09Ewht7ylMt1JT";
     const client = createClient({ publicApiKey: PUBLIC_API_KEY });
 
     let room = null;
@@ -30,11 +30,11 @@
     let lastMouseTime = 0;
     let navBarBadgeEl = null;
 
-    let sharedBlocks = null; 
+    let sharedBlocks = null;
     let isApplyingRemote = false;
     let remoteOpDepth = 0;
-    
-    function isRemoteActive() { return remoteOpDepth > 0 || isApplyingRemote; } 
+
+    function isRemoteActive() { return remoteOpDepth > 0 || isApplyingRemote; }
     function enterRemoteScope() { remoteOpDepth++; }
     function exitRemoteScope() { remoteOpDepth = Math.max(0, remoteOpDepth - 1); }
 
@@ -179,13 +179,13 @@
     function scheduleCloudflareSave(delay = 1000, broadcastAfter = false, syncAssets = false) {
         if (!currentRoomId || isRemoteActive()) return;
         if (cloudflareSaveTimer) clearTimeout(cloudflareSaveTimer);
-        
+
         cloudflareSaveTimer = setTimeout(async () => {
             try {
                 for (const t of Scratch.vm.runtime.targets) {
                     await syncTargetAssetsToR2(t);
                 }
-                
+
                 const snapshot = packCurrentProject();
                 lastKnownProjectTimestamp = snapshot.timestamp; // Cập nhật mốc thời gian máy cục bộ
 
@@ -332,12 +332,12 @@
                     if (snapshot.stage.variables) {
                         for (const varId in snapshot.stage.variables) {
                             const vData = snapshot.stage.variables[varId];
-                            
+
                             // Nếu biến chưa tồn tại, yêu cầu VM tạo mới (để kế thừa hàm toXML)
                             if (!stageTarget.variables[varId] && typeof stageTarget.createVariable === 'function') {
                                 stageTarget.createVariable(vData.id, vData.name, vData.type, vData.isCloud);
                             }
-                            
+
                             // Cập nhật giá trị một cách an toàn mà không làm mất prototype của VM
                             if (stageTarget.variables[varId]) {
                                 stageTarget.variables[varId].name = vData.name;
@@ -372,7 +372,7 @@
                         if (!isBackground) updateLoadingProgress('Đang thiết lập dữ liệu...', `Khởi tạo: ${spData.name} (${i + 1}/${snapshot.sprites.length})...`, 50 + Math.round(((i + 1) / snapshot.sprites.length) * 40));
 
                         let target = Scratch.vm.runtime.targets.find(t => !t.isStage && t.sprite.name === spData.name);
-                        
+
                         // Tải trước toàn bộ costume để không bao giờ để sprite ở trạng thái 0 costume
                         let initialCostumes = [];
                         if (spData.costumes) {
@@ -403,7 +403,7 @@
                             if (initialCostumes.length > 0) {
                                 disposeTargetSkins(target);
                                 target.sprite.costumes = initialCostumes;
-                                const cIdx = (spData.targetJSON && typeof spData.targetJSON.currentCostume === 'number') 
+                                const cIdx = (spData.targetJSON && typeof spData.targetJSON.currentCostume === 'number')
                                     ? spData.targetJSON.currentCostume : (target.currentCostume || 0);
                                 target.setCostume(Math.min(Math.max(0, cIdx), initialCostumes.length - 1));
                                 if (typeof target.updateAllDrawableProperties === 'function') {
@@ -462,7 +462,7 @@
         if (!fileName || !dataBuffer || uploadedR2Assets.has(fileName)) return true;
         try {
             // Đẩy thẳng PUT lên Cloudflare D1 kèm query room để lưu quan hệ phòng
-            const uploadUrl = currentRoomId 
+            const uploadUrl = currentRoomId
                 ? `${CLOUDFLARE_URL}/asset/${encodeURIComponent(fileName)}?room=${encodeURIComponent(currentRoomId)}`
                 : `${CLOUDFLARE_URL}/asset/${encodeURIComponent(fileName)}`;
 
@@ -665,7 +665,7 @@
 
             // 4. Nếu mất kết nối hoàn toàn mới dùng buffer 1x1 dự phòng
             if (!buffer && !asset) {
-                buffer = isSvg 
+                buffer = isSvg
                     ? new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>')
                     : new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,6,0,0,0,31,21,196,137,0,0,0,10,73,68,65,84,120,156,99,0,1,0,0,5,0,1,13,10,45,180,0,0,0,0,73,69,78,68,174,66,96,130]);
             }
@@ -715,7 +715,7 @@
     function isCostumeTabActive() {
         const tabs = document.querySelectorAll('[class*="react-tabs__tab"], [role="tab"]');
         for (const tab of tabs) {
-            const isSelected = tab.getAttribute('aria-selected') === 'true' || 
+            const isSelected = tab.getAttribute('aria-selected') === 'true' ||
                                tab.classList.contains('react-tabs__tab--selected');
             if (isSelected) {
                 const text = (tab.textContent || '').trim().toLowerCase();
@@ -1162,7 +1162,7 @@
             return;
         }
 
-        const paintEditor = document.querySelector('[class*="paint-editor_paint-editor"]') 
+        const paintEditor = document.querySelector('[class*="paint-editor_paint-editor"]')
                          || document.querySelector('[class*="paint-editor_canvas-container"]');
         if (!paintEditor || paintEditor.offsetParent === null) {
             if (paintCurtainEl) paintCurtainEl.style.display = 'none';
