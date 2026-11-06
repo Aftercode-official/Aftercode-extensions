@@ -1,7 +1,7 @@
 // Name: DOM plugin v3
 // ID: DOMplugin
 // Description: Customize DOM element in your project
-// By: katboizz
+// By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // License: MIT
 (function(Scratch) {
   'use strict';
@@ -508,6 +508,49 @@ getInfo() {
                 },
 
                 {
+                    opcode: 'setWindowTextureFromSprite',
+                    blockType: Scratch.BlockType.COMMAND,
+                    text: 'set window [ID] texture from this sprite fit [FIT]',
+                    arguments: {
+                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+                        FIT: {
+                            type: Scratch.ArgumentType.STRING,
+                            menu: 'fitMenu',
+                            defaultValue: 'contain'
+                        }
+                    }
+                },
+
+                {
+                    opcode: 'clearWindowTexture',
+                    blockType: Scratch.BlockType.COMMAND,
+                    text: 'clear texture of window [ID]',
+                    arguments: {
+                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" }
+                    }
+                },
+
+                {
+                    opcode: 'setWindowFrame',
+                    blockType: Scratch.BlockType.COMMAND,
+                    text: '[MODE] window frame of [ID]',
+                    arguments: {
+                        MODE: {
+                            type: Scratch.ArgumentType.STRING,
+                            menu: 'frameShowMenu',
+                            defaultValue: 'hide'
+                        },
+                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" }
+                    }
+                },
+
+                {
+                    opcode: 'getSpriteTexture',
+                    blockType: Scratch.BlockType.REPORTER,
+                    text: 'this sprite texture (data URL)',
+                },
+
+                {
                     opcode: 'setWindowPosition',
                     blockType: Scratch.BlockType.COMMAND,
                     text: 'set window [ID] position x [X] y [Y]',
@@ -572,80 +615,6 @@ getInfo() {
                 },
 
                 {
-                    opcode: 'setWindowDrag',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'set window [ID] drag [MODE] value [VALUE]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        MODE: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'dragModeMenu',
-                            defaultValue: 'enabled'
-                        },
-                        VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: 'true' }
-                    }
-                },
-
-                {
-                    opcode: 'setDragLogic',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'set drag logic of window [ID] phase [PHASE] code [CODE]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        PHASE: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'dragPhaseMenu',
-                            defaultValue: 'move'
-                        },
-                        CODE: {
-                            type: Scratch.ArgumentType.STRING,
-                            defaultValue: 'api.setPos(state.startLeft + (e.clientX - state.offsetX), state.startTop + (e.clientY - state.offsetY));'
-                        }
-                    }
-                },
-
-                {
-                    opcode: 'appendDragLogic',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'append drag logic of window [ID] phase [PHASE] code [CODE]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        PHASE: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'dragPhaseMenu',
-                            defaultValue: 'down'
-                        },
-                        CODE: {
-                            type: Scratch.ArgumentType.STRING,
-                            defaultValue: "win.style.boxShadow = '0 0 40px red';"
-                        }
-                    }
-                },
-
-                {
-                    opcode: 'resetDragLogic',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'reset drag logic of window [ID]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" }
-                    }
-                },
-
-                {
-                    opcode: 'getDragLogic',
-                    blockType: Scratch.BlockType.REPORTER,
-                    text: 'get drag logic of window [ID] phase [PHASE]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        PHASE: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'dragPhaseMenu',
-                            defaultValue: 'move'
-                        }
-                    }
-                },
-
-                {
                     opcode: 'runWindowJS',
                     blockType: Scratch.BlockType.COMMAND,
                     text: 'run JS [CODE] in window [ID]',
@@ -653,7 +622,7 @@ getInfo() {
                         ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
                         CODE: {
                             type: Scratch.ArgumentType.STRING,
-                            defaultValue: "__DOMWIN__.style.transform = 'rotate(5deg)';"
+                            defaultValue: "win.style.transform = 'rotate(5deg)';"
                         }
                     }
                 },
@@ -685,7 +654,24 @@ getInfo() {
                     acceptReporters: true,
                     items: [
                         { text: 'normal', value: 'normal' },
-                        { text: 'frameless', value: 'frameless' }
+                        { text: 'frameless', value: 'frameless' },
+                        { text: 'sprite only', value: 'sprite only' }
+                    ]
+                },
+                frameShowMenu: {
+                    acceptReporters: true,
+                    items: [
+                        { text: 'hide', value: 'hide' },
+                        { text: 'show', value: 'show' }
+                    ]
+                },
+                fitMenu: {
+                    acceptReporters: true,
+                    items: [
+                        { text: 'contain', value: 'contain' },
+                        { text: 'cover', value: 'cover' },
+                        { text: 'stretch', value: '100% 100%' },
+                        { text: 'original size', value: 'auto' }
                     ]
                 },
                 axisMenu: {
@@ -716,24 +702,6 @@ getInfo() {
                         { text: 'filter', value: 'filter' },
                         { text: 'padding', value: 'padding' },
                         { text: 'margin', value: 'margin' }
-                    ]
-                },
-                dragModeMenu: {
-                    acceptReporters: true,
-                    items: [
-                        { text: 'enabled (true/false)',   value: 'enabled' },
-                        { text: 'snap grid (px)',         value: 'snapGrid' },
-                        { text: 'clamp to viewport',      value: 'clamp' },
-                        { text: 'cursor',                 value: 'cursor' },
-                        { text: 'button (0=left,2=right)', value: 'button' }
-                    ]
-                },
-                dragPhaseMenu: {
-                    acceptReporters: true,
-                    items: [
-                        { text: 'down (bắt đầu kéo)', value: 'down' },
-                        { text: 'move (đang kéo)',   value: 'move' },
-                        { text: 'up (thả chuột)',    value: 'up' }
                     ]
                 }
             },
@@ -772,7 +740,7 @@ getInfo() {
     };
 
     let titleBar = null;
-    if (args.FRAME !== 'frameless') {
+    if (args.FRAME !== 'frameless') {  // 'normal' và 'sprite only' đều tạo titleBar (sprite only sẽ ẩn sau)
         titleBar = document.createElement('div');
         titleBar.style.height = '30px';
         titleBar.style.background = '#2ECC71';
@@ -805,7 +773,42 @@ getInfo() {
         iframe: null,
         titleBar: titleBar
     };
+
+    if (args.FRAME === 'sprite only') this._setFrameVisible(this.windows[id], false);
 }
+
+    // Ẩn/hiện khung window (nền, viền, bóng, thanh tiêu đề). Ẩn = chỉ còn sprite/texture.
+    _setFrameVisible(data, visible) {
+        const win = data.element;
+
+        if (visible) {
+            win.style.background = 'white';
+            win.style.border = '1px solid #555';
+            win.style.boxShadow = '0 5px 20px rgba(0,0,0,0.4)';
+            if (data.titleBar) data.titleBar.style.display = 'flex';
+            if (data.canvas) data.canvas.style.background = 'white';
+        } else {
+            win.style.background = 'transparent';
+            win.style.border = 'none';
+            win.style.boxShadow = 'none';
+            if (data.titleBar) data.titleBar.style.display = 'none';
+            if (data.canvas) data.canvas.style.background = 'transparent';
+            if (data.iframe) data.iframe.style.background = 'transparent';
+        }
+
+        // đổi tay cầm kéo: ẩn khung -> kéo bằng canvas; hiện khung -> kéo bằng titleBar
+        if (data.canvas) {
+            const handle = visible ? data.titleBar : data.canvas;
+            try { win._dragCleanup?.(); } catch {}
+            if (handle) this.makeDraggable(win, handle);
+        }
+    }
+
+    setWindowFrame(args) {
+        const data = this.windows[String(args.ID)];
+        if (!data) return;
+        this._setFrameVisible(data, String(args.MODE) === 'show');
+    }
 
 
     closeWindow(args) {
@@ -832,6 +835,56 @@ getInfo() {
         if (!target) return;
 
         data.sprite = target;
+    }
+
+    // Lấy texture (data URL) từ costume hiện tại của sprite
+    _getSpriteTextureURL(target) {
+        if (!target) return '';
+
+        try {
+            const costume = target.getCostumes()[target.currentCostume];
+            const asset = costume?.asset;
+            if (asset && typeof asset.encodeDataURI === 'function') {
+                return asset.encodeDataURI();
+            }
+        } catch (e) {}
+
+        try {
+            const renderer = Scratch.vm.renderer;
+            const drawable = renderer._allDrawables[target.drawableID];
+            const skin = drawable && renderer._allSkins[drawable.skin._id];
+            if (skin && skin._canvas) return skin._canvas.toDataURL('image/png');
+        } catch (e) {}
+
+        return '';
+    }
+
+    getSpriteTexture(args, util) {
+        return this._getSpriteTextureURL(util.target);
+    }
+
+    setWindowTextureFromSprite(args, util) {
+        const data = this.windows[String(args.ID)];
+        if (!data) return;
+
+        const url = this._getSpriteTextureURL(util.target);
+        if (!url) return;
+
+        const el = data.element;
+        el.style.backgroundImage = `url("${url}")`;
+        el.style.backgroundRepeat = 'no-repeat';
+        el.style.backgroundPosition = 'center';
+        el.style.backgroundSize = String(args.FIT || 'contain');
+
+        // để texture lộ ra phía sau canvas / iframe
+        if (data.canvas) data.canvas.style.background = 'transparent';
+        if (data.iframe) data.iframe.style.background = 'transparent';
+    }
+
+    clearWindowTexture(args) {
+        const data = this.windows[String(args.ID)];
+        if (!data) return;
+        data.element.style.backgroundImage = '';
     }
 
     updateLoop() {
@@ -1008,6 +1061,7 @@ getInfo() {
             handle: handle,
             iframe: iframe
         };
+        win._dragApi = api;
 
         const compile = (src, name) => {
             try {
@@ -1139,151 +1193,76 @@ getInfo() {
         return getComputedStyle(data.element).getPropertyValue(prop) || '';
     }
 
-    setWindowDrag(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
-
-        const state = data.element._dragState;
-        if (!state) return;
-
-        const mode = String(args.MODE);
-        const raw = String(args.VALUE);
-
-        switch (mode) {
-            case 'enabled':
-                state.enabled = (raw === 'true' || raw === '1');
-                break;
-            case 'snapGrid':
-                state.snapGrid = Math.max(0, Number(raw) || 0);
-                break;
-            case 'clamp':
-                state.clamp = (raw === 'true' || raw === '1');
-                break;
-            case 'cursor': {
-                state.cursor = raw;
-                const handle = data.element.querySelector('div[style*="cursor"]')
-                    || data.element.firstElementChild;
-                if (handle) handle.style.cursor = raw;
-                break;
-            }
-            case 'button':
-                state.button = Number(raw) === 2 ? 2 : 0;
-                break;
-        }
-    }
-
-    setDragLogic(args) {
-        const data = this.windows[String(args.ID)];
-        const phase = String(args.PHASE);
-        const code = String(args.CODE);
-
-        if (!data) {
-            if (phase === 'down') this._dragLogicDown = code;
-            if (phase === 'move') this._dragLogicMove = code;
-            if (phase === 'up')   this._dragLogicUp   = code;
-            return;
-        }
-
-        data.element._dragLogic = data.element._dragLogic || {
-            down: this._dragLogicDown,
-            move: this._dragLogicMove,
-            up:   this._dragLogicUp
-        };
-        if (phase === 'down') data.element._dragLogic.down = code;
-        if (phase === 'move') data.element._dragLogic.move = code;
-        if (phase === 'up')   data.element._dragLogic.up   = code;
-
-        data.element._dragRebuild?.();
-    }
-
-    appendDragLogic(args) {
-        const data = this.windows[String(args.ID)];
-        const phase = String(args.PHASE);
-        const code = String(args.CODE);
-
-        if (!data) return;
-        data.element._dragLogic = data.element._dragLogic || {
-            down: this._dragLogicDown,
-            move: this._dragLogicMove,
-            up:   this._dragLogicUp
-        };
-        if (phase === 'down') data.element._dragLogic.down += '\n' + code;
-        if (phase === 'move') data.element._dragLogic.move += '\n' + code;
-        if (phase === 'up')   data.element._dragLogic.up   += '\n' + code;
-
-        data.element._dragRebuild?.();
-    }
-
-    resetDragLogic(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
-        data.element._dragLogic = {
-            down: this._dragLogicDefault,
-            move: this._dragLogicMoveDefault,
-            up:   this._dragLogicUpDefault
-        };
-        data.element._dragRebuild?.();
-    }
-
-    getDragLogic(args) {
-        const data = this.windows[String(args.ID)];
-        const phase = String(args.PHASE);
-        if (!data || !data.element._dragLogic) {
-            if (phase === 'down') return this._dragLogicDown;
-            if (phase === 'move') return this._dragLogicMove;
-            if (phase === 'up')   return this._dragLogicUp;
-            return '';
-        }
-        return data.element._dragLogic[phase] ?? '';
-    }
-
+    // Run JS trực tiếp trong ext: chỉnh DOM / drag logic của window hiện tại.
+    // Biến có sẵn trong code:
+    //   win, handle, iframe, canvas, titleBar, id, data
+    //   state  : trạng thái kéo (enabled, snapGrid, clamp, button, cursor, isDown ...)
+    //   api    : api.setPos(x,y), api.getPos()
+    //   iframeWindow / iframeDocument : window/document của iframe (nếu có)
+    //   drag.set(phase, code) / drag.append(phase, code) / drag.reset() / drag.get(phase)
+    //       phase = 'down' | 'move' | 'up'; code có biến e, win, handle, iframe, state, api
+    //   ext (this), Scratch, vm
+    //   __DOMWIN__ (= win, để tương thích bản cũ)
     runWindowJS(args) {
         const id = String(args.ID);
         const data = this.windows[id];
         if (!data) return;
 
         const code = String(args.CODE);
+        const win = data.element;
+        const self = this;
 
+        let iframeWindow = null, iframeDocument = null;
         if (data.iframe) {
             try {
-                const w = data.iframe.contentWindow;
-                w.__DOMWIN__ = data.element;
-                w.__DOMWIN_IFRAME__ = data.iframe;
-                w.__DOMWIN_ID__ = id;
-                w.__DOMWIN_DATA__ = data;
-                w.eval(code);
-            } catch (e) {
-                console.warn('[DOMplugin] runWindowJS (iframe) lỗi:', e);
-            }
-            return;
+                iframeWindow = data.iframe.contentWindow;
+                iframeDocument = data.iframe.contentDocument;
+            } catch (e) {}
         }
 
-        const prevWin = globalThis.__DOMWIN__;
-        const prevCanvas = globalThis.__DOMWIN_CANVAS__;
-        const prevId = globalThis.__DOMWIN_ID__;
-        const prevData = globalThis.__DOMWIN_DATA__;
+        const ensureLogic = () => (win._dragLogic = win._dragLogic || {
+            down: self._dragLogicDown,
+            move: self._dragLogicMove,
+            up:   self._dragLogicUp
+        });
 
-        globalThis.__DOMWIN__ = data.element;
-        globalThis.__DOMWIN_CANVAS__ = data.canvas;
-        globalThis.__DOMWIN_ID__ = id;
-        globalThis.__DOMWIN_DATA__ = data;
+        const drag = {
+            set(phase, src) {
+                ensureLogic()[phase] = String(src);
+                win._dragRebuild?.();
+            },
+            append(phase, src) {
+                ensureLogic()[phase] += '\n' + String(src);
+                win._dragRebuild?.();
+            },
+            reset() {
+                win._dragLogic = {
+                    down: self._dragLogicDefault,
+                    move: self._dragLogicMoveDefault,
+                    up:   self._dragLogicUpDefault
+                };
+                win._dragRebuild?.();
+            },
+            get(phase) {
+                return ensureLogic()[phase] ?? '';
+            }
+        };
 
         try {
-            (0, eval)(code);
+            const fn = new Function(
+                'win', 'handle', 'iframe', 'canvas', 'titleBar', 'id', 'data',
+                'state', 'api', 'iframeWindow', 'iframeDocument', 'drag',
+                'ext', 'Scratch', 'vm', '__DOMWIN__',
+                code
+            );
+            fn.call(
+                win,
+                win, data.titleBar, data.iframe, data.canvas, data.titleBar, id, data,
+                win._dragState, win._dragApi, iframeWindow, iframeDocument, drag,
+                this, Scratch, vm, win
+            );
         } catch (e) {
             console.warn('[DOMplugin] runWindowJS lỗi:', e);
-        } finally {
-            if (prevWin === undefined) delete globalThis.__DOMWIN__;
-            else globalThis.__DOMWIN__ = prevWin;
-
-            if (prevCanvas === undefined) delete globalThis.__DOMWIN_CANVAS__;
-            else globalThis.__DOMWIN_CANVAS__ = prevCanvas;
-
-            if (prevId === undefined) delete globalThis.__DOMWIN_ID__;
-            else globalThis.__DOMWIN_ID__ = prevId;
-
-            if (prevData === undefined) delete globalThis.__DOMWIN_DATA__;
-            else globalThis.__DOMWIN_DATA__ = prevData;
         }
     }
 }
