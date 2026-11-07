@@ -1,27 +1,31 @@
-// Name: DOM plugin v3
+// Name: DOM plugin v4
 // ID: DOMplugin
 // Description: Customize DOM element in your project
-// By: katboizz
+// By: katboizz <https://scratch.mit.edu/users/katboizz/>
 // License: MIT
-(function(Scratch) {
-  'use strict';
+(function (Scratch) {
+  "use strict";
 
-if (!Scratch.extensions.unsandboxed) {
+  if (!Scratch.extensions.unsandboxed) {
     throw new Error("must be ran unsandboxed");
-}
-const extId = 'DOMplugin';
-const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
-  const hasOwn = (object, property) => Object.prototype.hasOwnProperty.call(object, property);
+  }
+  const extId = "DOMplugin";
+  const { BlockType, ArgumentType, vm } = Scratch,
+    runtime = vm.runtime;
+  const hasOwn = (object, property) =>
+    Object.prototype.hasOwnProperty.call(object, property);
   if (hasOwn(runtime, `ext_${extId}`)) {
     const MESSAGE = `Palette overload.<br /><small>(MoreFields loaded twice)</small>`;
     const toString = Object.prototype.toString;
-    Object.prototype.toString = function() {
+    Object.prototype.toString = function () {
       throw new Error(MESSAGE);
-    }
+    };
     vm.editingTarget = {};
     vm.emitTargetsUpdate();
-    setTimeout(function(){
-      const err = document.querySelector('p[class^=crash-message_error-message]');
+    setTimeout(function () {
+      const err = document.querySelector(
+        "p[class^=crash-message_error-message]",
+      );
       err.innerHTML = MESSAGE;
       Object.prototype.toString = toString;
     }, 100);
@@ -30,12 +34,12 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
   const customFieldTypes = {};
   let Blockly = null;
   const _LDC = function _LightenDarkenColor(col, amt) {
-    const num = parseInt(col.replace('#', ''), 16);
+    const num = parseInt(col.replace("#", ""), 16);
     const r = (num >> 16) + amt;
-    const b = ((num >> 8) & 0x00FF) + amt;
-    const g = (num & 0x0000FF) + amt;
+    const b = ((num >> 8) & 0x00ff) + amt;
+    const g = (num & 0x0000ff) + amt;
     const newColour = g | (b << 8) | (r << 16);
-    return (col.at(0) === '#' ? '#' : '') + newColour.toString(16);
+    return (col.at(0) === "#" ? "#" : "") + newColour.toString(16);
   };
   function _setCssNattr(node, attr, value) {
     node.setAttribute(attr, String(value));
@@ -52,98 +56,147 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
     if (!parent) return;
     const path = self?.svgPath_;
     const argumentSvg = path?.parentNode;
-    const textNode = argumentSvg.querySelector('g.blocklyEditableText text');
+    const textNode = argumentSvg.querySelector("g.blocklyEditableText text");
     const oldFirstColour = parent.colour_;
-    self.colour_ = (col1 ?? _LDC(parent.colour_, LDA));
+    self.colour_ = col1 ?? _LDC(parent.colour_, LDA);
     self.colourSecondary_ = _LDC(parent.colourSecondary_, LDA);
     self.colourTertiary_ = _LDC(parent.colourTertiary_, LDA);
-    self.colourQuaternary_ = _LDC(parent?.colourQuaternary_ ?? oldFirstColour, LDA);
-    _setCssNattr(path, 'fill', self.colour_);
-    _setCssNattr(path, 'stroke', self.colourTertiary_);
-    if (doText && textNode) _setCssNattr(textNode, 'fill', textColour ?? '#e06c75');
+    self.colourQuaternary_ = _LDC(
+      parent?.colourQuaternary_ ?? oldFirstColour,
+      LDA,
+    );
+    _setCssNattr(path, "fill", self.colour_);
+    _setCssNattr(path, "stroke", self.colourTertiary_);
+    if (doText && textNode)
+      _setCssNattr(textNode, "fill", textColour ?? "#e06c75");
   }
   function _moveDropdown(toArgument) {
     toArgument ??= false;
-    Blockly.DropDownDiv.showPositionedByBlock(this, (toArgument ? this.sourceBlock_ : this.sourceBlock_.parentBlock_));
+    Blockly.DropDownDiv.showPositionedByBlock(
+      this,
+      toArgument ? this.sourceBlock_ : this.sourceBlock_.parentBlock_,
+    );
   }
   const _cbfsb = runtime._convertBlockForScratchBlocks.bind(runtime);
-  runtime._convertBlockForScratchBlocks = function(blockInfo, categoryInfo, ...args) {
+  runtime._convertBlockForScratchBlocks = function (
+    blockInfo,
+    categoryInfo,
+    ...args
+  ) {
     const res = _cbfsb(blockInfo, categoryInfo, ...args);
-    if (hasOwn(blockInfo, 'blockShape')) res.json.outputShape = blockInfo.blockShape;
+    if (hasOwn(blockInfo, "blockShape"))
+      res.json.outputShape = blockInfo.blockShape;
     return res;
   };
   const bcfi = runtime._buildCustomFieldInfo.bind(runtime);
   const bcftfsb = runtime._buildCustomFieldTypeForScratchBlocks.bind(runtime);
   let fi = null;
-  runtime._buildCustomFieldInfo = function(fieldName, fieldInfo, extensionId, categoryInfo, ...args) {
+  runtime._buildCustomFieldInfo = function (
+    fieldName,
+    fieldInfo,
+    extensionId,
+    categoryInfo,
+    ...args
+  ) {
     fi = fieldInfo;
     return bcfi(fieldName, fieldInfo, extensionId, categoryInfo, ...args);
   };
-  runtime._buildCustomFieldTypeForScratchBlocks = function(fieldName, output, outputShape, categoryInfo, ...args) {
+  runtime._buildCustomFieldTypeForScratchBlocks = function (
+    fieldName,
+    output,
+    outputShape,
+    categoryInfo,
+    ...args
+  ) {
     const res = bcftfsb(fieldName, output, outputShape, categoryInfo, ...args);
     if (fi) {
       if (fi.color1) res.json.colour = fi.color1;
       if (fi.color2) res.json.colourSecondary = fi.color2;
       if (fi.color3) res.json.colourTertiary = fi.color3;
       if (fi.color4) res.json.colourQuaternary = fi.color4;
-      if (hasOwn(fi, 'output')) res.json.output = fi.output;
+      if (hasOwn(fi, "output")) res.json.output = fi.output;
       fi = null;
     }
     return res;
   };
   const toRegisterOnBlocklyGot = [];
-   vm.addListener('EXTENSION_FIELD_ADDED', (fieldInfo) => {
-    if (Blockly) Blockly.Field.register(fieldInfo.name, fieldInfo.implementation);
-    else toRegisterOnBlocklyGot.push([fieldInfo.name, fieldInfo.implementation]);
+  vm.addListener("EXTENSION_FIELD_ADDED", (fieldInfo) => {
+    if (Blockly)
+      Blockly.Field.register(fieldInfo.name, fieldInfo.implementation);
+    else
+      toRegisterOnBlocklyGot.push([fieldInfo.name, fieldInfo.implementation]);
   });
-  ArgumentType.TEXTAREA = 'Textarea';
+  ArgumentType.TEXTAREA = "Textarea";
   const implementations = {
     FieldInlineTextarea: null,
   };
   customFieldTypes[ArgumentType.TEXTAREA] = {
     output: ArgumentType.STRING,
-    color1: '#2ECC71',
+    color1: "#2ECC71",
     outputShape: 3,
     implementation: {
       fromJson: () => new implementations.FieldInlineTextarea(),
     },
   };
-    function gotBlockly(_sb) {
+  function gotBlockly(_sb) {
     Blockly = _sb;
     const BlockSvg = Blockly.BlockSvg;
     const _setAttribute = SVGTextElement.prototype.setAttribute;
-    SVGTextElement.prototype.setAttribute = function(attr, val, ...args) {
-      if (String(val) === 'NaN' && (attr === 'x' || attr === 'y') && this.getAttribute('class') === 'blocklyText') {
+    SVGTextElement.prototype.setAttribute = function (attr, val, ...args) {
+      if (
+        String(val) === "NaN" &&
+        (attr === "x" || attr === "y") &&
+        this.getAttribute("class") === "blocklyText"
+      ) {
         const nattr = `MoreFieldsAttrErr${attr.toUpperCase()}`;
-        _setAttribute.call(this, nattr, `Attempted an illegal set on this text node. ${attr.toUpperCase()} was set to NaN.`);
-        return _setAttribute.call(this, attr, '0', ...args);
+        _setAttribute.call(
+          this,
+          nattr,
+          `Attempted an illegal set on this text node. ${attr.toUpperCase()} was set to NaN.`,
+        );
+        return _setAttribute.call(this, attr, "0", ...args);
       }
       return _setAttribute.call(this, attr, val, ...args);
     };
-    const _endBlockDrag = Blockly.BlockDragger.prototype.endBlockDrag
+    const _endBlockDrag = Blockly.BlockDragger.prototype.endBlockDrag;
     Blockly.BlockDragger.prototype.endBlockDrag = function (...a) {
       const res = _endBlockDrag.apply(this, a);
       for (const childBlock of this.draggingBlock_.childBlocks_) {
         const inputList = childBlock.inputList;
-        if (inputList.length === 1 && inputList[0].fieldRow.length === 1 && !!inputList[0].fieldRow[0]?.inlineDblRender) childBlock.render();
+        if (
+          inputList.length === 1 &&
+          inputList[0].fieldRow.length === 1 &&
+          !!inputList[0].fieldRow[0]?.inlineDblRender
+        )
+          childBlock.render();
       }
       return res;
-    }
+    };
     const textInputs_trueToOriginal = true;
-    implementations.FieldInlineTextarea = class FieldInlineTextarea extends Blockly.Field {
+    implementations.FieldInlineTextarea = class FieldInlineTextarea extends (
+      Blockly.Field
+    ) {
       constructor(opt_value) {
         opt_value = ArgumentType.TEXTAREA;
         super(opt_value);
-        this.addArgType('String');
+        this.addArgType("String");
         this.addArgType(ArgumentType.TEXTAREA);
       }
       updateWidth() {
         if (this._textarea) {
-          const width = this._textarea.offsetWidth + 1, height = this._textarea.offsetHeight + 1;
-          this._textareaHolder.setAttribute('width', String(width + 3));
-          this._textareaHolder.setAttribute('height', String(height + 3));
-          this.size_.width = width - BlockSvg.NOTCH_START_PADDING + 2 * BlockSvg.NOTCH_START_PADDING / 3;
-          this.size_.height = height + BlockSvg.NOTCH_HEIGHT + 1.5 + BlockSvg.NOTCH_START_PADDING / 3;
+          const width = this._textarea.offsetWidth + 1,
+            height = this._textarea.offsetHeight + 1;
+          this._textareaHolder.setAttribute("width", String(width + 3));
+          this._textareaHolder.setAttribute("height", String(height + 3));
+          this.size_.width =
+            width -
+            BlockSvg.NOTCH_START_PADDING +
+            (2 * BlockSvg.NOTCH_START_PADDING) / 3;
+          this.size_.height =
+            height +
+            BlockSvg.NOTCH_HEIGHT +
+            1.5 +
+            BlockSvg.NOTCH_START_PADDING / 3;
         } else {
           this.size_.width = this._FakeWidth || 300;
           this.size_.height = this._FakeHeight || 150;
@@ -155,84 +208,102 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
       init(...initArgs) {
         this.inlineDblRender = true;
         Blockly.Field.prototype.init.call(this, ...initArgs);
-        this.textNode__ = this.sourceBlock_.svgPath_.parentNode.querySelector('g.blocklyEditableText text');
+        this.textNode__ = this.sourceBlock_.svgPath_.parentNode.querySelector(
+          "g.blocklyEditableText text",
+        );
         if (!!this.textNode__ && this.sourceBlock_.parentBlock_) {
-          this.textNode__.style.display = 'none';
+          this.textNode__.style.display = "none";
           _fixColours.call(this, false, this.sourceBlock_.parentBlock_.colour_);
         }
         this._FakeWidth ??= 300;
         this._FakeHeight ??= 150;
-        const textareaHolder = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-        textareaHolder.setAttribute('style', 'color-scheme: Dark; color: #e06c75;');
-        textareaHolder.addEventListener('keydown', (e) => {
+        const textareaHolder = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "foreignObject",
+        );
+        textareaHolder.setAttribute(
+          "style",
+          "color-scheme: Dark; color: #e06c75;",
+        );
+        textareaHolder.addEventListener("keydown", (e) => {
           e.stopPropagation();
-          if (e.key === 'Tab') {
+          if (e.key === "Tab") {
             e.preventDefault();
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
-            textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
+            textarea.value =
+              textarea.value.substring(0, start) +
+              "  " +
+              textarea.value.substring(end);
             textarea.selectionStart = textarea.selectionEnd = start + 2;
             this.setValue(textarea.value);
           }
         });
-        textareaHolder.addEventListener('keyup', (e) => e.stopPropagation());
-        textareaHolder.addEventListener('input', () => {
+        textareaHolder.addEventListener("keyup", (e) => e.stopPropagation());
+        textareaHolder.addEventListener("input", () => {
           this.setValue(textarea.value);
         });
-        textareaHolder.setAttribute('x', '6');
-        textareaHolder.setAttribute('y', String(BlockSvg.NOTCH_START_PADDING / 2 - 0.375));
-        textareaHolder.addEventListener('mousedown', (e) => e.stopPropagation());
-        const textarea = document.createElement('textarea');
-        textarea.value = this.getValue() ?? '';
-        textarea.style.width = '300px';
-        textarea.style.height = '150px';
-        textarea.addEventListener('input', () => this._onInput());
-        textarea.addEventListener('mouseup', () => this._resizeHolder());
+        textareaHolder.setAttribute("x", "6");
+        textareaHolder.setAttribute(
+          "y",
+          String(BlockSvg.NOTCH_START_PADDING / 2 - 0.375),
+        );
+        textareaHolder.addEventListener("mousedown", (e) =>
+          e.stopPropagation(),
+        );
+        const textarea = document.createElement("textarea");
+        textarea.value = this.getValue() ?? "";
+        textarea.style.width = "300px";
+        textarea.style.height = "150px";
+        textarea.addEventListener("input", () => this._onInput());
+        textarea.addEventListener("mouseup", () => this._resizeHolder());
         if (this.fieldGroup_) {
-          this.fieldGroup_.insertAdjacentElement('afterend', textareaHolder);
+          this.fieldGroup_.insertAdjacentElement("afterend", textareaHolder);
           textareaHolder.appendChild(textarea);
           this._textareaHolder = textareaHolder;
           this._textarea = textarea;
           if (this.sourceBlock_ && this.sourceBlock_.isInFlyout) {
             textarea.disabled = true;
-            textarea.style.resize = 'none';
+            textarea.style.resize = "none";
           }
-          new ResizeObserver(() => this._resizeHolder()).observe(this._textarea);
+          new ResizeObserver(() => this._resizeHolder()).observe(
+            this._textarea,
+          );
         }
         this._resizeHolder();
       }
       _resizeHolder() {
         this.updateWidth();
         const ov = this.getValue();
-        this.setValue(ov + '~');
+        this.setValue(ov + "~");
         this.setValue(ov);
         this.render_();
       }
       _onInput() {
         this.setValue(this._textarea.value);
       }
-      showEditor_() {
-      }
-    }
-    }
-    gotBlockly._on = new Set();
-  gotBlockly.when = function(callback) {
+      showEditor_() {}
+    };
+  }
+  gotBlockly._on = new Set();
+  gotBlockly.when = function (callback) {
     if (Blockly) {
       callback(Blockly);
       return;
     }
     gotBlockly._on.add(() => callback(Blockly));
   };
-  gotBlockly._registerFields = function() {
+  gotBlockly._registerFields = function () {
     while (toRegisterOnBlocklyGot.length > 0) {
       const [name, impl] = toRegisterOnBlocklyGot.shift();
       Blockly.Field.register(name, impl);
     }
     gotBlockly._hardRefresh();
   };
-  gotBlockly._hardRefresh = function() {
+  gotBlockly._hardRefresh = function () {
     vm.extensionManager.refreshBlocks();
-    const eventsOriginallyEnabled = Blockly.Events.isEnabled(), workspace = Blockly.getMainWorkspace();
+    const eventsOriginallyEnabled = Blockly.Events.isEnabled(),
+      workspace = Blockly.getMainWorkspace();
     try {
       Blockly.Events.disable();
       if (workspace) {
@@ -242,19 +313,19 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
           const flyoutWorkspace = flyout.getWorkspace();
           Blockly.Xml.clearWorkspaceAndLoadFromXml(
             Blockly.Xml.workspaceToDom(flyoutWorkspace),
-            flyoutWorkspace
+            flyoutWorkspace,
           );
           workspace.getToolbox().refreshSelection();
           workspace.toolboxRefreshEnabled_ = true;
         }
       }
-    } catch(err) {
-      console.error('Error while refreshing toolbox and workspace.', err);
+    } catch (err) {
+      console.error("Error while refreshing toolbox and workspace.", err);
     } finally {
       if (eventsOriginallyEnabled) Blockly.Events.enable();
     }
-  }
-  gotBlockly._badRefresh = function(ws) {
+  };
+  gotBlockly._badRefresh = function (ws) {
     ws.resetDragSurface();
     try {
       ws.getFlyout().clearOldBlocks_();
@@ -262,18 +333,25 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
       ws.refreshToolboxSelection_();
     } catch {}
   };
-  if (typeof Scratch?.gui === 'object') Scratch.gui.getBlockly().then((Blockly) => gotBlockly(Blockly));
-  const xmlEscape = (unsafe) => unsafe.replace(/[<>&'"]/g, c => {
-    switch (c) {
-      case '<': return '&lt;';
-      case '>': return '&gt;';
-      case '&': return '&amp;';
-      case '\'': return '&apos;';
-      case '"': return '&quot;';
-    }
-  });
+  if (typeof Scratch?.gui === "object")
+    Scratch.gui.getBlockly().then((Blockly) => gotBlockly(Blockly));
+  const xmlEscape = (unsafe) =>
+    unsafe.replace(/[<>&'"]/g, (c) => {
+      switch (c) {
+        case "<":
+          return "&lt;";
+        case ">":
+          return "&gt;";
+        case "&":
+          return "&amp;";
+        case "'":
+          return "&apos;";
+        case '"':
+          return "&quot;";
+      }
+    });
 
-class extensionAPI {
+  class extensionAPI {
     static get customFieldTypes() {
       return customFieldTypes;
     }
@@ -281,9 +359,11 @@ class extensionAPI {
       return fi;
     }
     static PRIV_extensionField(args, util, blockJSON) {
-      return (
-        this._registered[blockJSON.fieldInfo.name.toUpperCase()]
-      ).getValue(args, util, blockJSON);
+      return this._registered[blockJSON.fieldInfo.name.toUpperCase()].getValue(
+        args,
+        util,
+        blockJSON,
+      );
     }
     static hideDropdown() {
       if (!Blockly) return;
@@ -295,8 +375,13 @@ class extensionAPI {
       if (!Blockly) return;
       if (Blockly.DropDownDiv.isVisible()) return;
       if (self.sourceBlock_.parentBlock) {
-        Blockly.DropDownDiv.setColour(self.sourceBlock_.parentBlock_.getColour(), self.sourceBlock_.parentBlock_.getColourTertiary());
-        Blockly.DropDownDiv.setCategory(self.sourceBlock_.parentBlock_.getCategory());
+        Blockly.DropDownDiv.setColour(
+          self.sourceBlock_.parentBlock_.getColour(),
+          self.sourceBlock_.parentBlock_.getColourTertiary(),
+        );
+        Blockly.DropDownDiv.setCategory(
+          self.sourceBlock_.parentBlock_.getCategory(),
+        );
       }
       _moveDropdown.call(self, true);
     }
@@ -304,30 +389,37 @@ class extensionAPI {
       const fg_ = self.fieldGroup_;
       if (!fg_) return;
       const path = fg_?.previousElementSibling;
-      if (path?.nodeName !== 'path') return;
-      path.setAttribute('stroke', colour);
-      path.setAttribute('fill', colour);
+      if (path?.nodeName !== "path") return;
+      path.setAttribute("stroke", colour);
+      path.setAttribute("fill", colour);
     }
     static fixTextNode(self, textColour) {
       if (!self.sourceBlock_) return;
-      if (!(self.textNode__ = (
-        self.sourceBlock_.svgPath_.parentNode.querySelector('g.blocklyEditableText text')
-      ))) return
-      _setCssNattr(self.textNode__, 'fill', textColour ?? '#FFFFFF');
+      if (
+        !(self.textNode__ = self.sourceBlock_.svgPath_.parentNode.querySelector(
+          "g.blocklyEditableText text",
+        ))
+      )
+        return;
+      _setCssNattr(self.textNode__, "fill", textColour ?? "#FFFFFF");
     }
     static _registered = Object.create(null);
     static _register = new Set();
     static _patch = new Set();
     constructor() {
-    this.windows = {};
-    this.zIndexCounter = 9999;
-    this.updateLoop = this.updateLoop.bind(this);
-    requestAnimationFrame(this.updateLoop);
-      vm.on('CREATE_UNSANDBOXED_EXTENSION_API', (Scratch) => {
+      this.windows = {};
+      this.zIndexCounter = 9999;
+      this.updateLoop = this.updateLoop.bind(this);
+      this.createdElements = new Map();
+      this.modalBackups = new Map();
+      requestAnimationFrame(this.updateLoop);
+      vm.on("CREATE_UNSANDBOXED_EXTENSION_API", (Scratch) => {
         const register = Scratch.extensions.register;
         Scratch.extensions.register = (clss) => {
           if (this.constructor._patch.has(clss.getInfo().id)) {
-            clss['extensionField'] = this.constructor.PRIV_extensionField.bind(this.constructor);
+            clss["extensionField"] = this.constructor.PRIV_extensionField.bind(
+              this.constructor,
+            );
           }
           return register(clss);
         };
@@ -342,28 +434,31 @@ class extensionAPI {
       this._patch.add(newExtId);
       ArgumentType[onu] = onu;
       opts.blockType ??= BlockType.REPORTER;
-      opts.defaultValue ??= '';
-      opts.text ??= '[FIELD]';
-      opts.xml ??= '';
+      opts.defaultValue ??= "";
+      opts.text ??= "[FIELD]";
+      opts.xml ??= "";
       opts.output ??= null;
       opts.outputShape ??= 3;
-      opts.color1 ??= '#2ECC71';
+      opts.color1 ??= "#2ECC71";
       opts.color2 ??= opts.color1;
       opts.color3 ??= opts.color1;
       opts.color4 ??= opts.color1;
       implementations[`ceb${onu}`] = null;
-      const fi = customFieldTypes[onu] = opts.fi = {
-        name: onu,
-        output: opts.output,
-        color1: opts.color1,
-        color2: opts.color2,
-        color3: opts.color3,
-        color4: opts.color4,
-        outputShape: opts.outputShape,
-        implementation: {
-          fromJson: (...args) => new implementations[`ceb${onu}`](...args),
-        },
-      };
+      const fi =
+        (customFieldTypes[onu] =
+        opts.fi =
+          {
+            name: onu,
+            output: opts.output,
+            color1: opts.color1,
+            color2: opts.color2,
+            color3: opts.color3,
+            color4: opts.color4,
+            outputShape: opts.outputShape,
+            implementation: {
+              fromJson: (...args) => new implementations[`ceb${onu}`](...args),
+            },
+          });
       this._registered[onu] = {
         getValue,
         getField,
@@ -371,66 +466,80 @@ class extensionAPI {
         fi,
       };
       gotBlockly.when((Blockly) => {
-        Blockly.defineBlocksWithJsonArray([{
-          type: `${extId}_${onu}`,
-          message0: '%1',
-          inputsInline: true,
-          output: opts.output,
-          colour: opts.color1,
-          colourSecondary: opts.color2,
-          colourTertiary: opts.color3,
-          outputShape: opts.outputShape,
-          args0: [{
-            name: `field_${extId}_${onu}`,
-            type: `field_${extId}_${onu}`,
-          }],
-        }]);
+        Blockly.defineBlocksWithJsonArray([
+          {
+            type: `${extId}_${onu}`,
+            message0: "%1",
+            inputsInline: true,
+            output: opts.output,
+            colour: opts.color1,
+            colourSecondary: opts.color2,
+            colourTertiary: opts.color3,
+            outputShape: opts.outputShape,
+            args0: [
+              {
+                name: `field_${extId}_${onu}`,
+                type: `field_${extId}_${onu}`,
+              },
+            ],
+          },
+        ]);
         const field = getField(Blockly);
         implementations[`ceb${onu}`] = field;
         this._register.delete(onu);
         if (this._register.size === 0) {
-          runtime.emit('BLOCKINFO_UPDATE', runtime[`ext_${extId}`].getInfo());
+          runtime.emit("BLOCKINFO_UPDATE", runtime[`ext_${extId}`].getInfo());
           gotBlockly._registerFields();
-          if (globalThis.ReduxStore) { setTimeout(() => {
-            const ws = Blockly.getMainWorkspace();
-            vm.clearFlyoutBlocks();
-            runtime.flyoutBlocks.resetCache();
-            ws.updateToolbox(ReduxStore.getState().scratchGui.toolbox.toolboxXML);
-            gotBlockly._badRefresh(ws);
-            setTimeout(() => gotBlockly._badRefresh(ws), 100);
-          }, 250); }
+          if (globalThis.ReduxStore) {
+            setTimeout(() => {
+              const ws = Blockly.getMainWorkspace();
+              vm.clearFlyoutBlocks();
+              runtime.flyoutBlocks.resetCache();
+              ws.updateToolbox(
+                ReduxStore.getState().scratchGui.toolbox.toolboxXML,
+              );
+              gotBlockly._badRefresh(ws);
+              setTimeout(() => gotBlockly._badRefresh(ws), 100);
+            }, 250);
+          }
         }
       });
-      vm.emit('EXTENSION_FIELD_ADDED', Object.assign(fi, {
-        name: `field_${extId}_${onu}`,
-      }));
-      return [{
-        fieldInfo: opts,
-        blockType: opts.blockType,
-        outputShape: opts.outputShape,
-        blockShape: opts.outputShape,
-        func: 'extensionField',
-        opcode: `ceb${onu}`,
-        text: opts.text,
-        arguments: {
-          FIELD: {
-            type: onu,
-            defaultValue: opts.defaultValue,
-            exemptFromNormalization: true,
+      vm.emit(
+        "EXTENSION_FIELD_ADDED",
+        Object.assign(fi, {
+          name: `field_${extId}_${onu}`,
+        }),
+      );
+      return [
+        {
+          fieldInfo: opts,
+          blockType: opts.blockType,
+          outputShape: opts.outputShape,
+          blockShape: opts.outputShape,
+          func: "extensionField",
+          opcode: `ceb${onu}`,
+          text: opts.text,
+          arguments: {
+            FIELD: {
+              type: onu,
+              defaultValue: opts.defaultValue,
+              exemptFromNormalization: true,
+            },
           },
+          allowDropAnywhere: opts.output === null,
+          hideFromPalette: true,
         },
-        allowDropAnywhere: (opts.output === null),
-        hideFromPalette: true,
-      }, {
-        blockType: BlockType.XML,
-        xml: (`<block type="${newExtId}_ceb${onu}">${
-          opts.xml
-        }<value name="FIELD"><shadow type="${
-          extId
-        }_${onu}"><field name="field_${extId}_${onu}">${
-          xmlEscape(opts.defaultValue)
-        }</field></shadow></value></block>`),
-      }];
+        {
+          blockType: BlockType.XML,
+          xml: `<block type="${newExtId}_ceb${onu}">${
+            opts.xml
+          }<value name="FIELD"><shadow type="${
+            extId
+          }_${onu}"><field name="field_${extId}_${onu}">${xmlEscape(
+            opts.defaultValue,
+          )}</field></shadow></value></block>`,
+        },
+      ];
     }
   }
   class extension extends extensionAPI {
@@ -443,827 +552,1325 @@ class extensionAPI {
       _moveDropdown,
       extensionAPI,
       xmlEscape,
-      get padding() { return padding; },
+      get padding() {
+        return padding;
+      },
     };
 
-getInfo() {
-       const getInfo = ({
-         id: extId,
-             name: 'DOM plugin v3',
-            color1: '#2ECC71',
-            color2: '#27AE60',
-            blocks: [
-                {
-                    opcode: 'createWindow',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'create window id [ID] frameless [FRAME]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        FRAME: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'frameMenu'
-                        }
-                    }
-                },
-
-                 {
-                    opcode: 'createhtmlwin',
-                    blockType: BlockType.COMMAND,
-                    text: ' Excute code html [TEXT] set window id [ID]',
-                    arguments: {
-                    TEXT: {
-                        type: Scratch.ArgumentType.TEXTAREA,
-                        defaultValue: '<div style="overflow-x: auto; color:white; background:#8e44ad; padding:15px; text-align:center; font-family:sans-serif; border-radius:8px;">\n <h2>Example html</h2>\n  <button onclick="alert(\'yippppppe\')">click me</button>\n</div>',
-                        exemptFromNormalization: true,
-                    },
-                    ID:{ type: Scratch.ArgumentType.STRING, defaultValue: "win1" }
-
-                    },
-                    allowDropAnywhere: true,
-                    blockShape: 3,
-                },
-
-                {
-                    blockType: BlockType.XML,
-                    xml: '<sep gap="140" />',
-                },
-
-                {
-                    opcode: 'closeWindow',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'close window [ID]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" }
-                    }
-                },
-
-                {
-                    opcode: 'setWindowSpriteLive',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'set window [ID] live sprite [NAME]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        NAME: { type: Scratch.ArgumentType.STRING, defaultValue: "Sprite1" }
-                    }
-                },
-
-                {
-                    opcode: 'setWindowTextureFromSprite',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'set window [ID] texture from this sprite fit [FIT]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        FIT: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'fitMenu',
-                            defaultValue: 'contain'
-                        }
-                    }
-                },
-
-                {
-                    opcode: 'clearWindowTexture',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'clear texture of window [ID]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" }
-                    }
-                },
-
-                {
-                    opcode: 'setWindowFrame',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: '[MODE] window frame of [ID]',
-                    arguments: {
-                        MODE: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'frameShowMenu',
-                            defaultValue: 'hide'
-                        },
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" }
-                    }
-                },
-
-                {
-                    opcode: 'getSpriteTexture',
-                    blockType: Scratch.BlockType.REPORTER,
-                    text: 'this sprite texture (data URL)',
-                },
-
-                {
-                    opcode: 'setWindowPosition',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'set window [ID] position x [X] y [Y]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        X: { type: Scratch.ArgumentType.NUMBER, defaultValue: 100 },
-                        Y: { type: Scratch.ArgumentType.NUMBER, defaultValue: 100 }
-                    }
-                },
-
-                {
-                    opcode: 'setWindowSize',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'set window [ID] size width [W] height [H]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        W: { type: Scratch.ArgumentType.NUMBER, defaultValue: 400 },
-                        H: { type: Scratch.ArgumentType.NUMBER, defaultValue: 300 }
-                    }
-                },
-
-                {
-                    opcode: 'setWindowCSS',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'set window [ID] css [PROP] value [VALUE]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        PROP: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'cssPropMenu',
-                            defaultValue: 'background'
-                        },
-                        VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: 'red' }
-                    }
-                },
-
-                {
-                    opcode: 'setWindowCSSFull',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'set window [ID] css style [STYLE]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        STYLE: {
-                            type: Scratch.ArgumentType.STRING,
-                            defaultValue: 'background:red; border-radius:16px; opacity:0.9;'
-                        }
-                    }
-                },
-
-                {
-                    opcode: 'getWindowCSS',
-                    blockType: Scratch.BlockType.REPORTER,
-                    text: 'get window [ID] css [PROP]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        PROP: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'cssPropMenu',
-                            defaultValue: 'background'
-                        }
-                    }
-                },
-
-                {
-                    opcode: 'runWindowJS',
-                    blockType: Scratch.BlockType.COMMAND,
-                    text: 'run JS [CODE] in window [ID]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        CODE: {
-                            type: Scratch.ArgumentType.STRING,
-                            defaultValue: "win.style.transform = 'rotate(5deg)';"
-                        }
-                    }
-                },
-
-                {
-                    opcode: 'getWindowPosition',
-                    blockType: Scratch.BlockType.REPORTER,
-                    text: 'get window [ID] position [AXIS]',
-                    arguments: {
-                        ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
-                        AXIS: {
-                            type: Scratch.ArgumentType.STRING,
-                            menu: 'axisMenu'
-                        }
-                    }
-                },
-
-                {
-                opcode: 'Allwindows',
-                blockType: Scratch.BlockType.REPORTER,
-                text: 'All windows',
-                },
-            ],
-
-            customFieldTypes,
-
-            menus: {
-                frameMenu: {
-                    acceptReporters: true,
-                    items: [
-                        { text: 'normal', value: 'normal' },
-                        { text: 'frameless', value: 'frameless' },
-                        { text: 'sprite only', value: 'sprite only' }
-                    ]
-                },
-                frameShowMenu: {
-                    acceptReporters: true,
-                    items: [
-                        { text: 'hide', value: 'hide' },
-                        { text: 'show', value: 'show' }
-                    ]
-                },
-                fitMenu: {
-                    acceptReporters: true,
-                    items: [
-                        { text: 'contain', value: 'contain' },
-                        { text: 'cover', value: 'cover' },
-                        { text: 'stretch', value: '100% 100%' },
-                        { text: 'original size', value: 'auto' }
-                    ]
-                },
-                axisMenu: {
-                    acceptReporters: true,
-                    items: [
-                        { text: 'x', value: 'x' },
-                        { text: 'y', value: 'y' }
-                    ]
-                },
-                cssPropMenu: {
-                    acceptReporters: true,
-                    items: [
-                        { text: 'background', value: 'background' },
-                        { text: 'background-color', value: 'backgroundColor' },
-                        { text: 'color', value: 'color' },
-                        { text: 'border', value: 'border' },
-                        { text: 'border-radius', value: 'borderRadius' },
-                        { text: 'border-color', value: 'borderColor' },
-                        { text: 'box-shadow', value: 'boxShadow' },
-                        { text: 'opacity', value: 'opacity' },
-                        { text: 'width', value: 'width' },
-                        { text: 'height', value: 'height' },
-                        { text: 'left', value: 'left' },
-                        { text: 'top', value: 'top' },
-                        { text: 'z-index', value: 'zIndex' },
-                        { text: 'display', value: 'display' },
-                        { text: 'transform', value: 'transform' },
-                        { text: 'filter', value: 'filter' },
-                        { text: 'padding', value: 'padding' },
-                        { text: 'margin', value: 'margin' }
-                    ]
-                }
+    getInfo() {
+      const getInfo = {
+        id: extId,
+        name: "DOM plugin v4",
+        color1: "#2ECC71",
+        color2: "#27AE60",
+        blocks: [
+          {
+            opcode: "createWindow",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "create window id [ID] frameless [FRAME]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              FRAME: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "frameMenu",
+              },
             },
-        });
-        return getInfo;
-    };
+          },
+          {
+            opcode: "createhtmlwin",
+            blockType: BlockType.COMMAND,
+            text: " Execute code html [TEXT] set window id [ID]",
+            arguments: {
+              TEXT: {
+                type: Scratch.ArgumentType.TEXTAREA,
+                defaultValue:
+                  '<div style="overflow-x: auto; color:white; background:#8e44ad; padding:15px; text-align:center; font-family:sans-serif; border-radius:8px;">\n <h2>Example html</h2>\n  <button onclick="alert(\'yippppppe\')">click me</button>\n</div>',
+                exemptFromNormalization: true,
+              },
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+            },
+            allowDropAnywhere: true,
+            blockShape: 3,
+          },
+          {
+            blockType: BlockType.XML,
+            xml: '<sep gap="140" />',
+          },
+          {
+            opcode: "closeWindow",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "close window [ID]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+            },
+          },
+          {
+            opcode: "setWindowSpriteLive",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "set window [ID] live sprite [NAME]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              NAME: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "Sprite1",
+              },
+            },
+          },
+          {
+            opcode: "setWindowTextureFromSprite",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "set window [ID] texture from this sprite fit [FIT]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              FIT: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "fitMenu",
+                defaultValue: "contain",
+              },
+            },
+          },
+          {
+            opcode: "clearWindowTexture",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "clear texture of window [ID]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+            },
+          },
+          {
+            opcode: "setWindowFrame",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "[MODE] window frame of [ID]",
+            arguments: {
+              MODE: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "frameShowMenu",
+                defaultValue: "hide",
+              },
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+            },
+          },
+          {
+            opcode: "getSpriteTexture",
+            blockType: Scratch.BlockType.REPORTER,
+            text: "this sprite texture (data URL)",
+          },
+          {
+            opcode: "setWindowPosition",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "set window [ID] position x [X] y [Y]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              X: { type: Scratch.ArgumentType.NUMBER, defaultValue: 100 },
+              Y: { type: Scratch.ArgumentType.NUMBER, defaultValue: 100 },
+            },
+          },
+          {
+            opcode: "setWindowSize",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "set window [ID] size width [W] height [H]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              W: { type: Scratch.ArgumentType.NUMBER, defaultValue: 400 },
+              H: { type: Scratch.ArgumentType.NUMBER, defaultValue: 300 },
+            },
+          },
+          {
+            opcode: "setWindowCSS",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "set window [ID] css [PROP] value [VALUE]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              PROP: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "cssPropMenu",
+                defaultValue: "background",
+              },
+              VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: "red" },
+            },
+          },
+          {
+            opcode: "setWindowCSSFull",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "set window [ID] css style [STYLE]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              STYLE: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue:
+                  "background:red; border-radius:16px; opacity:0.9;",
+              },
+            },
+          },
+          {
+            opcode: "getWindowCSS",
+            blockType: Scratch.BlockType.REPORTER,
+            text: "get window [ID] css [PROP]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              PROP: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "cssPropMenu",
+                defaultValue: "background",
+              },
+            },
+          },
+          {
+            opcode: "runWindowJS",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "run JS [CODE] in window [ID]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              CODE: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "win.style.transform = 'rotate(5deg)';",
+              },
+            },
+          },
+          {
+            opcode: "getWindowPosition",
+            blockType: Scratch.BlockType.REPORTER,
+            text: "get window [ID] position [AXIS]",
+            arguments: {
+              ID: { type: Scratch.ArgumentType.STRING, defaultValue: "win1" },
+              AXIS: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "axisMenu",
+              },
+            },
+          },
+          {
+            opcode: "Allwindows",
+            blockType: Scratch.BlockType.REPORTER,
+            text: "All windows",
+          },
+          "---",
+          { blockType: Scratch.BlockType.LABEL, text: 'Custom Modal' },
+          {
+            opcode: "createModal",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "Create modal id [ID] title [TITLE] body [BODY]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+              TITLE: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "Notice",
+              },
+              BODY: {
+                type: Scratch.ArgumentType.TEXTAREA,
+                defaultValue: "Content...",
+              },
+            },
+            allowDropAnywhere: true,
+            blockShape: 3,
+          },
+          {
+            blockType: BlockType.XML,
+            xml: '<sep gap="140" />',
+          },
+          {
+            opcode: "applyHTMLToModal",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "Apply HTML code [HTML] to modal id [ID]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+              HTML: {
+                type: Scratch.ArgumentType.TEXTAREA,
+                defaultValue: "<h2>Title</h2><p>Modal content</p>",
+              },
+            },
+            allowDropAnywhere: true,
+            blockShape: 3,
+          },
+          {
+            blockType: BlockType.XML,
+            xml: '<sep gap="140" />',
+          },
+          {
+            opcode: "applyHTMLToModalBody",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "Apply HTML code [HTML] to modal body id [ID]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+              HTML: {
+                type: Scratch.ArgumentType.TEXTAREA,
+                defaultValue: "<p>Modal body content</p>",
+              },
+            },
+            allowDropAnywhere: true,
+            blockShape: 3,
+          },
+          {
+            blockType: BlockType.XML,
+            xml: '<sep gap="140" />',
+          },
+          {
+            opcode: "modalHasHTML",
+            blockType: Scratch.BlockType.BOOLEAN,
+            text: "Modal id [ID] has HTML?",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+            },
+          },
+          {
+            opcode: "showModal",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "Show modal id [ID]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+            },
+          },
+          {
+            opcode: "hideModal",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "Hide modal id [ID]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+            },
+          },
+          {
+            opcode: "toggleModal",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "Toggle modal id [ID]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+            },
+          },
+          {
+            opcode: "isModalVisible",
+            blockType: Scratch.BlockType.BOOLEAN,
+            text: "Modal id [ID] is visible?",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+            },
+          },
+          {
+            opcode: "removeModal",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "Remove modal id [ID]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+            },
+          },
+          {
+            opcode: "setModalSize",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "Set modal id [ID] width [W] height [H]",
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "myModal",
+              },
+              W: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "80vw",
+              },
+              H: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "85vh",
+              },
+            },
+          },
+        ],
+        customFieldTypes,
+        menus: {
+          frameMenu: {
+            acceptReporters: true,
+            items: [
+              { text: "normal", value: "normal" },
+              { text: "frameless", value: "frameless" },
+              { text: "sprite only", value: "sprite only" },
+            ],
+          },
+          frameShowMenu: {
+            acceptReporters: true,
+            items: [
+              { text: "hide", value: "hide" },
+              { text: "show", value: "show" },
+            ],
+          },
+          fitMenu: {
+            acceptReporters: true,
+            items: [
+              { text: "contain", value: "contain" },
+              { text: "cover", value: "cover" },
+              { text: "stretch", value: "100% 100%" },
+              { text: "original size", value: "auto" },
+            ],
+          },
+          axisMenu: {
+            acceptReporters: true,
+            items: [
+              { text: "x", value: "x" },
+              { text: "y", value: "y" },
+            ],
+          },
+          cssPropMenu: {
+            acceptReporters: true,
+            items: [
+              { text: "background", value: "background" },
+              { text: "background-color", value: "backgroundColor" },
+              { text: "color", value: "color" },
+              { text: "border", value: "border" },
+              { text: "border-radius", value: "borderRadius" },
+              { text: "border-color", value: "borderColor" },
+              { text: "box-shadow", value: "boxShadow" },
+              { text: "opacity", value: "opacity" },
+              { text: "width", value: "width" },
+              { text: "height", value: "height" },
+              { text: "left", value: "left" },
+              { text: "top", value: "top" },
+              { text: "z-index", value: "zIndex" },
+              { text: "display", value: "display" },
+              { text: "transform", value: "transform" },
+              { text: "filter", value: "filter" },
+              { text: "padding", value: "padding" },
+              { text: "margin", value: "margin" },
+            ],
+          },
+          styleProps: {
+            acceptReporters: true,
+            items: [
+              "color",
+              "background",
+              "backgroundColor",
+              "backgroundImage",
+              "width",
+              "height",
+              "minWidth",
+              "maxWidth",
+              "minHeight",
+              "maxHeight",
+              "margin",
+              "padding",
+              "border",
+              "borderRadius",
+              "position",
+              "top",
+              "left",
+              "right",
+              "bottom",
+              "zIndex",
+              "display",
+              "visibility",
+              "opacity",
+              "fontSize",
+              "fontFamily",
+              "fontWeight",
+              "textAlign",
+              "transform",
+              "transition",
+              "boxShadow",
+              "cursor",
+              "overflow",
+            ],
+          },
+          units: {
+            acceptReporters: true,
+            items: ["px", "%", "em", "rem", "vw", "vh"],
+          },
+        },
+      };
+      return getInfo;
+    }
 
     createWindow(args) {
-    const id = String(args.ID);
-    if (this.windows[id]) return;
+      const id = String(args.ID);
+      if (this.windows[id]) return;
 
-    const win = document.createElement('div');
-    win.style.position = 'fixed';
-    win.style.left = '460px';
-    win.style.top = '120px';
-    win.style.width = '400px';
-    win.style.height = '300px';
-    win.style.background = 'white';
-    win.style.border = '1px solid #555';
-    win.style.boxShadow = '0 5px 20px rgba(0,0,0,0.4)';
-    win.style.zIndex = this.zIndexCounter++;
-    win.style.display = 'flex';
-    win.style.flexDirection = 'column';
-    win.style.overflow = 'hidden';
+      const win = document.createElement("div");
+      win.style.position = "fixed";
+      win.style.left = "460px";
+      win.style.top = "120px";
+      win.style.width = "400px";
+      win.style.height = "300px";
+      win.style.background = "white";
+      win.style.border = "1px solid #555";
+      win.style.boxShadow = "0 5px 20px rgba(0,0,0,0.4)";
+      win.style.zIndex = this.zIndexCounter++;
+      win.style.display = "flex";
+      win.style.flexDirection = "column";
+      win.style.overflow = "hidden";
 
-    const canvas = document.createElement("canvas");
-    canvas.width = 400;
-    canvas.height = 270;
-    canvas.style.flex = "1";
-    canvas.style.background = "white";
+      const canvas = document.createElement("canvas");
+      canvas.width = 400;
+      canvas.height = 270;
+      canvas.style.flex = "1";
+      canvas.style.background = "white";
 
-    win._dragLogic = {
+      win._dragLogic = {
         down: this._dragLogicDown,
         move: this._dragLogicMove,
-        up:   this._dragLogicUp
-    };
+        up: this._dragLogicUp,
+      };
 
-    let titleBar = null;
-    if (args.FRAME !== 'frameless') {  // 'normal' và 'sprite only' đều tạo titleBar (sprite only sẽ ẩn sau)
-        titleBar = document.createElement('div');
-        titleBar.style.height = '30px';
-        titleBar.style.background = '#2ECC71';
-        titleBar.style.cursor = 'move';
-        titleBar.style.display = 'flex';
-        titleBar.style.alignItems = 'center';
-        titleBar.style.justifyContent = 'space-between';
-        titleBar.style.padding = '0 8px';
-        titleBar.style.color = 'white';
+      let titleBar = null;
+      if (args.FRAME !== "frameless") {
+        titleBar = document.createElement("div");
+        titleBar.style.height = "30px";
+        titleBar.style.background = "#2ECC71";
+        titleBar.style.cursor = "move";
+        titleBar.style.display = "flex";
+        titleBar.style.alignItems = "center";
+        titleBar.style.justifyContent = "space-between";
+        titleBar.style.padding = "0 8px";
+        titleBar.style.color = "white";
         titleBar.textContent = id;
 
-        const closeBtn = document.createElement('span');
-        closeBtn.textContent = '✕';
-        closeBtn.style.cursor = 'pointer';
-        closeBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
-        closeBtn.onclick = () => this.closeWindow({ID:id});
+        const closeBtn = document.createElement("span");
+        closeBtn.textContent = "✕";
+        closeBtn.style.cursor = "pointer";
+        closeBtn.addEventListener("pointerdown", (e) => e.stopPropagation());
+        closeBtn.onclick = () => this.closeWindow({ ID: id });
 
         titleBar.appendChild(closeBtn);
         win.appendChild(titleBar);
         this.makeDraggable(win, titleBar);
-    }
+      }
 
-    win.appendChild(canvas);
-    document.body.appendChild(win);
+      win.appendChild(canvas);
+      document.body.appendChild(win);
 
-    this.windows[id] = {
+      this.windows[id] = {
         element: win,
         canvas: canvas,
         sprite: null,
         iframe: null,
-        titleBar: titleBar
-    };
+        titleBar: titleBar,
+      };
 
-    if (args.FRAME === 'sprite only') this._setFrameVisible(this.windows[id], false);
-}
+      if (args.FRAME === "sprite only")
+        this._setFrameVisible(this.windows[id], false);
+    }
 
-    // Ẩn/hiện khung window (nền, viền, bóng, thanh tiêu đề). Ẩn = chỉ còn sprite/texture.
     _setFrameVisible(data, visible) {
-        const win = data.element;
+      const win = data.element;
 
-        if (visible) {
-            win.style.background = 'white';
-            win.style.border = '1px solid #555';
-            win.style.boxShadow = '0 5px 20px rgba(0,0,0,0.4)';
-            if (data.titleBar) data.titleBar.style.display = 'flex';
-            if (data.canvas) data.canvas.style.background = 'white';
-        } else {
-            win.style.background = 'transparent';
-            win.style.border = 'none';
-            win.style.boxShadow = 'none';
-            if (data.titleBar) data.titleBar.style.display = 'none';
-            if (data.canvas) data.canvas.style.background = 'transparent';
-            if (data.iframe) data.iframe.style.background = 'transparent';
-        }
+      if (visible) {
+        win.style.background = "white";
+        win.style.border = "1px solid #555";
+        win.style.boxShadow = "0 5px 20px rgba(0,0,0,0.4)";
+        if (data.titleBar) data.titleBar.style.display = "flex";
+        if (data.canvas) data.canvas.style.background = "white";
+      } else {
+        win.style.background = "transparent";
+        win.style.border = "none";
+        win.style.boxShadow = "none";
+        if (data.titleBar) data.titleBar.style.display = "none";
+        if (data.canvas) data.canvas.style.background = "transparent";
+        if (data.iframe) data.iframe.style.background = "transparent";
+      }
 
-        // ẩn khung -> không kéo được; hiện khung -> kéo lại bằng titleBar
-        try { win._dragCleanup?.(); } catch {}
-        if (visible && data.titleBar) this.makeDraggable(win, data.titleBar);
+      try {
+        win._dragCleanup?.();
+      } catch {}
+      if (visible && data.titleBar) this.makeDraggable(win, data.titleBar);
     }
 
     setWindowFrame(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
-        this._setFrameVisible(data, String(args.MODE) === 'show');
+      const data = this.windows[String(args.ID)];
+      if (!data) return;
+      this._setFrameVisible(data, String(args.MODE) === "show");
     }
 
-
     closeWindow(args) {
-        const id = String(args.ID);
-        const data = this.windows[id];
-        if (!data) return;
+      const id = String(args.ID);
+      const data = this.windows[id];
+      if (!data) return;
 
-        try { data.element._dragCleanup?.(); } catch {}
+      try {
+        data.element._dragCleanup?.();
+      } catch {}
 
-        data.element.remove();
-        delete this.windows[id];
+      data.element.remove();
+      delete this.windows[id];
     }
 
     setWindowSpriteLive(args) {
-        const id = String(args.ID);
-        const name = String(args.NAME);
+      const id = String(args.ID);
+      const name = String(args.NAME);
 
-        const data = this.windows[id];
-        if (!data) return;
+      const data = this.windows[id];
+      if (!data) return;
 
-        const target = Scratch.vm.runtime.targets.find(
-            t => t.getName && t.getName() === name
-        );
-        if (!target) return;
+      const target = Scratch.vm.runtime.targets.find(
+        (t) => t.getName && t.getName() === name,
+      );
+      if (!target) return;
 
-        data.sprite = target;
+      data.sprite = target;
     }
 
-    // Lấy texture (data URL) từ costume hiện tại của sprite
     _getSpriteTextureURL(target) {
-        if (!target) return '';
+      if (!target) return "";
 
-        try {
-            const costume = target.getCostumes()[target.currentCostume];
-            const asset = costume?.asset;
-            if (asset && typeof asset.encodeDataURI === 'function') {
-                return asset.encodeDataURI();
-            }
-        } catch (e) {}
+      try {
+        const costume = target.getCostumes()[target.currentCostume];
+        const asset = costume?.asset;
+        if (asset && typeof asset.encodeDataURI === "function") {
+          return asset.encodeDataURI();
+        }
+      } catch (e) {}
 
-        try {
-            const renderer = Scratch.vm.renderer;
-            const drawable = renderer._allDrawables[target.drawableID];
-            const skin = drawable && renderer._allSkins[drawable.skin._id];
-            if (skin && skin._canvas) return skin._canvas.toDataURL('image/png');
-        } catch (e) {}
+      try {
+        const renderer = Scratch.vm.renderer;
+        const drawable = renderer._allDrawables[target.drawableID];
+        const skin = drawable && renderer._allSkins[drawable.skin._id];
+        if (skin && skin._canvas) return skin._canvas.toDataURL("image/png");
+      } catch (e) {}
 
-        return '';
+      return "";
     }
 
     getSpriteTexture(args, util) {
-        return this._getSpriteTextureURL(util.target);
+      return this._getSpriteTextureURL(util.target);
     }
 
     setWindowTextureFromSprite(args, util) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
+      const data = this.windows[String(args.ID)];
+      if (!data) return;
 
-        const url = this._getSpriteTextureURL(util.target);
-        if (!url) return;
+      const url = this._getSpriteTextureURL(util.target);
+      if (!url) return;
 
-        const el = data.element;
-        el.style.backgroundImage = `url("${url}")`;
-        el.style.backgroundRepeat = 'no-repeat';
-        el.style.backgroundPosition = 'center';
-        el.style.backgroundSize = String(args.FIT || 'contain');
+      const el = data.element;
+      el.style.backgroundImage = `url("${url}")`;
+      el.style.backgroundRepeat = "no-repeat";
+      el.style.backgroundPosition = "center";
+      el.style.backgroundSize = String(args.FIT || "contain");
 
-        // để texture lộ ra phía sau canvas / iframe
-        if (data.canvas) data.canvas.style.background = 'transparent';
-        if (data.iframe) data.iframe.style.background = 'transparent';
+      if (data.canvas) data.canvas.style.background = "transparent";
+      if (data.iframe) data.iframe.style.background = "transparent";
     }
 
     clearWindowTexture(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
-        data.element.style.backgroundImage = '';
+      const data = this.windows[String(args.ID)];
+      if (!data) return;
+      data.element.style.backgroundImage = "";
     }
 
     updateLoop() {
-        const renderer = Scratch.vm.renderer;
+      const renderer = Scratch.vm.renderer;
 
-        for (const id in this.windows) {
-            const data = this.windows[id];
-            if (!data.sprite || !data.canvas) continue;
+      for (const id in this.windows) {
+        const data = this.windows[id];
+        if (!data.sprite || !data.canvas) continue;
 
-            const drawableID = data.sprite.drawableID;
-            if (drawableID == null) continue;
+        const drawableID = data.sprite.drawableID;
+        if (drawableID == null) continue;
 
-            const drawable = renderer._allDrawables[drawableID];
-            if (!drawable) continue;
+        const drawable = renderer._allDrawables[drawableID];
+        if (!drawable) continue;
 
-            const skin = renderer._allSkins[drawable.skin._id];
-            if (!skin || !skin._canvas) continue;
+        const skin = renderer._allSkins[drawable.skin._id];
+        if (!skin || !skin._canvas) continue;
 
-            const canvas = data.canvas;
-            const ctx = canvas.getContext("2d");
+        const canvas = data.canvas;
+        const ctx = canvas.getContext("2d");
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const skinCanvas = skin._canvas;
+        const skinCanvas = skin._canvas;
 
-            const scale = Math.min(
-                canvas.width / skinCanvas.width,
-                canvas.height / skinCanvas.height
-            );
+        const scale = Math.min(
+          canvas.width / skinCanvas.width,
+          canvas.height / skinCanvas.height,
+        );
 
-            const w = skinCanvas.width * scale;
-            const h = skinCanvas.height * scale;
+        const w = skinCanvas.width * scale;
+        const h = skinCanvas.height * scale;
 
-            ctx.drawImage(
-                skinCanvas,
-                (canvas.width - w) / 2,
-                (canvas.height - h) / 2,
-                w,
-                h
-            );
-        }
+        ctx.drawImage(
+          skinCanvas,
+          (canvas.width - w) / 2,
+          (canvas.height - h) / 2,
+          w,
+          h,
+        );
+      }
 
-        requestAnimationFrame(this.updateLoop);
+      requestAnimationFrame(this.updateLoop);
     }
 
     setWindowPosition(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
-        data.element.style.left = Number(args.X) + 'px';
-        data.element.style.top = Number(args.Y) + 'px';
+      const data = this.windows[String(args.ID)];
+      if (!data) return;
+      data.element.style.left = Number(args.X) + "px";
+      data.element.style.top = Number(args.Y) + "px";
     }
 
     setWindowSize(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
-        data.element.style.width = Number(args.W) + 'px';
-        data.element.style.height = Number(args.H) + 'px';
+      const data = this.windows[String(args.ID)];
+      if (!data) return;
+      data.element.style.width = Number(args.W) + "px";
+      data.element.style.height = Number(args.H) + "px";
     }
 
-   createhtmlwin(args) {
-    const id = String(args.ID);
-    if (this.windows[id]) return;
-    const htmlCode = String(args.TEXT);
+    createhtmlwin(args) {
+      const id = String(args.ID);
+      if (this.windows[id]) return;
+      const htmlCode = String(args.TEXT);
 
-    const win = document.createElement('div');
-    win.style.position = 'fixed';
-    win.style.left = '460px';
-    win.style.top = '120px';
-    win.style.width = '400px';
-    win.style.height = '300px';
-    win.style.background = 'white';
-    win.style.border = '1px solid #555';
-    win.style.boxShadow = '0 5px 20px rgba(0,0,0,0.4)';
-    win.style.zIndex = this.zIndexCounter++;
-    win.style.display = 'flex';
-    win.style.flexDirection = 'column';
-    win.style.overflow = 'hidden';
+      const win = document.createElement("div");
+      win.style.position = "fixed";
+      win.style.left = "460px";
+      win.style.top = "120px";
+      win.style.width = "400px";
+      win.style.height = "300px";
+      win.style.background = "white";
+      win.style.border = "1px solid #555";
+      win.style.boxShadow = "0 5px 20px rgba(0,0,0,0.4)";
+      win.style.zIndex = this.zIndexCounter++;
+      win.style.display = "flex";
+      win.style.flexDirection = "column";
+      win.style.overflow = "hidden";
 
-    win._dragLogic = {
+      win._dragLogic = {
         down: this._dragLogicDown,
         move: this._dragLogicMove,
-        up:   this._dragLogicUp
-    };
+        up: this._dragLogicUp,
+      };
 
-    const titleBar = document.createElement('div');
-    titleBar.style.height = '30px';
-    titleBar.style.background = '#2ECC71';
-    titleBar.style.cursor = 'move';
-    titleBar.style.display = 'flex';
-    titleBar.style.alignItems = 'center';
-    titleBar.style.justifyContent = 'space-between';
-    titleBar.style.padding = '0 8px';
-    titleBar.style.color = 'white';
-    titleBar.textContent = id;
+      const titleBar = document.createElement("div");
+      titleBar.style.height = "30px";
+      titleBar.style.background = "#2ECC71";
+      titleBar.style.cursor = "move";
+      titleBar.style.display = "flex";
+      titleBar.style.alignItems = "center";
+      titleBar.style.justifyContent = "space-between";
+      titleBar.style.padding = "0 8px";
+      titleBar.style.color = "white";
+      titleBar.textContent = id;
 
-    const closeBtn = document.createElement('span');
-    closeBtn.textContent = '✕';
-    closeBtn.style.cursor = 'pointer';
-    closeBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
-    closeBtn.onclick = () => this.closeWindow({ ID: id });
-    titleBar.appendChild(closeBtn);
+      const closeBtn = document.createElement("span");
+      closeBtn.textContent = "✕";
+      closeBtn.style.cursor = "pointer";
+      closeBtn.addEventListener("pointerdown", (e) => e.stopPropagation());
+      closeBtn.onclick = () => this.closeWindow({ ID: id });
+      titleBar.appendChild(closeBtn);
 
-    const iframe = document.createElement('iframe');
-    iframe.style.flex = '1';
-    iframe.style.border = 'none';
-    iframe.style.width = '100%';
-    iframe.style.colorScheme = 'normal';
-    iframe.style.background = 'transparent';
-    iframe.srcdoc = htmlCode;
+      const iframe = document.createElement("iframe");
+      iframe.style.flex = "1";
+      iframe.style.border = "none";
+      iframe.style.width = "100%";
+      iframe.style.colorScheme = "normal";
+      iframe.style.background = "transparent";
+      iframe.srcdoc = htmlCode;
 
-    win.appendChild(titleBar);
-    win.appendChild(iframe);
-    document.body.appendChild(win);
+      win.appendChild(titleBar);
+      win.appendChild(iframe);
+      document.body.appendChild(win);
 
-    this.makeDraggable(win, titleBar);
+      this.makeDraggable(win, titleBar);
 
-    this.activeHtmlFrame = iframe;
-    this.windows[id] = {
+      this.activeHtmlFrame = iframe;
+      this.windows[id] = {
         element: win,
         canvas: null,
         sprite: null,
         iframe: iframe,
-        titleBar: titleBar
-    };
-}
+        titleBar: titleBar,
+      };
+    }
 
     makeDraggable(win, handle) {
-        if (!win._dragLogic) {
-            win._dragLogic = {
-                down: this._dragLogicDown,
-                move: this._dragLogicMove,
-                up:   this._dragLogicUp
-            };
+      if (!win._dragLogic) {
+        win._dragLogic = {
+          down: this._dragLogicDown,
+          move: this._dragLogicMove,
+          up: this._dragLogicUp,
+        };
+      }
+
+      const iframe = win.querySelector("iframe");
+      handle.style.userSelect = "none";
+      handle.style.cursor = "move";
+
+      const state = {
+        isDown: false,
+        startLeft: 0,
+        startTop: 0,
+        offsetX: 0,
+        offsetY: 0,
+        enabled: true,
+        button: 0,
+        snapGrid: 0,
+        clamp: false,
+        cursor: "move",
+      };
+      win._dragState = state;
+
+      const api = {
+        setPos(x, y) {
+          let nx = x,
+            ny = y;
+          if (state.snapGrid > 0) {
+            nx = Math.round(nx / state.snapGrid) * state.snapGrid;
+            ny = Math.round(ny / state.snapGrid) * state.snapGrid;
+          }
+          if (state.clamp) {
+            const maxX = window.innerWidth - win.offsetWidth;
+            const maxY = window.innerHeight - win.offsetHeight;
+            nx = Math.max(0, Math.min(nx, maxX));
+            ny = Math.max(0, Math.min(ny, maxY));
+          }
+          win.style.left = nx + "px";
+          win.style.top = ny + "px";
+        },
+        getPos() {
+          return { x: win.offsetLeft, y: win.offsetTop };
+        },
+        window: win,
+        handle: handle,
+        iframe: iframe,
+      };
+      win._dragApi = api;
+
+      const compile = (src, name) => {
+        try {
+          return new Function(
+            "e",
+            "win",
+            "handle",
+            "iframe",
+            "state",
+            "api",
+            src,
+          );
+        } catch (err) {
+          console.warn(`[DOMplugin] drag logic "${name}" compile error:`, err);
+          return () => {};
         }
+      };
 
-        const iframe = win.querySelector('iframe');
-        handle.style.userSelect = 'none';
-        handle.style.cursor = 'move';
+      let fnDown = compile(win._dragLogic.down, "down");
+      let fnMove = compile(win._dragLogic.move, "move");
+      let fnUp = compile(win._dragLogic.up, "up");
 
-        const state = {
-            isDown: false,
-            startLeft: 0,
-            startTop: 0,
-            offsetX: 0,
-            offsetY: 0,
-            enabled: true,
-            button: 0,
-            snapGrid: 0,
-            clamp: false,
-            cursor: 'move'
-        };
-        win._dragState = state;
+      const rebuild = () => {
+        fnDown = compile(win._dragLogic.down, "down");
+        fnMove = compile(win._dragLogic.move, "move");
+        fnUp = compile(win._dragLogic.up, "up");
+      };
+      win._dragRebuild = rebuild;
 
-        const api = {
-            setPos(x, y) {
-                let nx = x, ny = y;
-                if (state.snapGrid > 0) {
-                    nx = Math.round(nx / state.snapGrid) * state.snapGrid;
-                    ny = Math.round(ny / state.snapGrid) * state.snapGrid;
-                }
-                if (state.clamp) {
-                    const maxX = window.innerWidth - win.offsetWidth;
-                    const maxY = window.innerHeight - win.offsetHeight;
-                    nx = Math.max(0, Math.min(nx, maxX));
-                    ny = Math.max(0, Math.min(ny, maxY));
-                }
-                win.style.left = nx + 'px';
-                win.style.top = ny + 'px';
-            },
-            getPos() {
-                return { x: win.offsetLeft, y: win.offsetTop };
-            },
-            window: win,
-            handle: handle,
-            iframe: iframe
-        };
-        win._dragApi = api;
+      const onDown = (e) => {
+        try {
+          fnDown(e, win, handle, iframe, state, api);
+        } catch (err) {
+          console.warn(err);
+        }
+      };
+      const onMove = (e) => {
+        if (state.isDown) {
+          try {
+            fnMove(e, win, handle, iframe, state, api);
+          } catch (err) {
+            console.warn(err);
+          }
+        }
+      };
+      const onUp = (e) => {
+        try {
+          fnUp(e, win, handle, iframe, state, api);
+        } catch (err) {
+          console.warn(err);
+        }
+      };
 
-        const compile = (src, name) => {
-            try {
-                return new Function('e', 'win', 'handle', 'iframe', 'state', 'api', src);
-            } catch (err) {
-                console.warn(`[DOMplugin] drag logic "${name}" compile lỗi:`, err);
-                return () => {};
-            }
-        };
+      handle.addEventListener("pointerdown", onDown);
+      handle.addEventListener("pointermove", onMove);
+      handle.addEventListener("pointerup", onUp);
+      handle.addEventListener("pointercancel", onUp);
 
-        let fnDown = compile(win._dragLogic.down, 'down');
-        let fnMove = compile(win._dragLogic.move, 'move');
-        let fnUp   = compile(win._dragLogic.up,   'up');
-
-        const rebuild = () => {
-            fnDown = compile(win._dragLogic.down, 'down');
-            fnMove = compile(win._dragLogic.move, 'move');
-            fnUp   = compile(win._dragLogic.up,   'up');
-        };
-        win._dragRebuild = rebuild;
-
-        const onDown = (e) => { try { fnDown(e, win, handle, iframe, state, api); } catch (err) { console.warn(err); } };
-        const onMove = (e) => { if (state.isDown) { try { fnMove(e, win, handle, iframe, state, api); } catch (err) { console.warn(err); } } };
-        const onUp   = (e) => { try { fnUp(e, win, handle, iframe, state, api); } catch (err) { console.warn(err); } };
-
-        handle.addEventListener('pointerdown', onDown);
-        handle.addEventListener('pointermove', onMove);
-        handle.addEventListener('pointerup', onUp);
-        handle.addEventListener('pointercancel', onUp);
-
-        win._dragCleanup = () => {
-            handle.removeEventListener('pointerdown', onDown);
-            handle.removeEventListener('pointermove', onMove);
-            handle.removeEventListener('pointerup', onUp);
-            handle.removeEventListener('pointercancel', onUp);
-            win._dragRebuild = null;
-        };
+      win._dragCleanup = () => {
+        handle.removeEventListener("pointerdown", onDown);
+        handle.removeEventListener("pointermove", onMove);
+        handle.removeEventListener("pointerup", onUp);
+        handle.removeEventListener("pointercancel", onUp);
+        win._dragRebuild = null;
+      };
     }
 
-    Allwindows(){
-        return (Object.keys(this.windows));
+    Allwindows() {
+      return Object.keys(this.windows);
     }
 
-    getWindowPosition(args){
-    const data = this.windows[String(args.ID)];
-    if (!data) return '';
-    const axis = String(args.AXIS).toLowerCase();
-    if (axis === 'x') return data.element.offsetLeft;
-    if (axis === 'y') return data.element.offsetTop;
-    return `${"X: "+data.element.offsetLeft},${"Y: "+data.element.offsetTop}`;
+    _getEl(id) {
+      const el = document.getElementById(String(id));
+      if (!el) console.warn(`[DOM plugin] Element not found: #${id}`);
+      return el;
+    }
+
+    createModal(args) {
+      const id = String(args.ID).trim();
+      const title = String(args.TITLE);
+      const body = String(args.BODY);
+
+      if (document.getElementById(id)) {
+        console.warn(`[DOM plugin] modal #${id} already exists`);
+        return;
+      }
+
+      const modal = document.createElement("div");
+      modal.id = id;
+
+      modal.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.6);
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        color-scheme: dark;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      `;
+
+      modal.innerHTML = `
+        <div class="tw-modal-content" style="
+          background: #2b2b2b;
+          color: #f0f0f0;
+          border-radius: 8px;
+          border: 1px solid #444;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+          width: 80vw;
+          max-width: 600px;
+          max-height: 85vh;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        ">
+          <div style="
+            padding: 16px 24px;
+            background: #3a3a3a;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+          ">
+            <span class="dom-tools-modal-title">${title}</span>
+            <button class="dom-tools-modal-close" style="
+              background: #555;
+              border: none;
+              color: #fff;
+              width: 28px;
+              height: 28px;
+              border-radius: 50%;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 16px;
+              transition: background 0.2s;
+            " onmouseover="this.style.background='#777'" onmouseout="this.style.background='#555'">×</button>
+          </div>
+          <div class="dom-tools-modal-body" style="
+            padding: 20px 24px;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #ccc;
+          ">${body}</div>
+        </div>
+      `;
+
+      const style = document.createElement('style');
+      style.innerHTML = `
+        #${id} .dom-tools-modal-body::-webkit-scrollbar { width: 10px; }
+        #${id} .dom-tools-modal-body::-webkit-scrollbar-track { background: #2b2b2b; }
+        #${id} .dom-tools-modal-body::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
+        #${id} .dom-tools-modal-body::-webkit-scrollbar-thumb:hover { background: #777; }
+      `;
+      document.head.appendChild(style);
+
+      document.body.appendChild(modal);
+
+      if (!this.createdElements) this.createdElements = new Map();
+      this.createdElements.set(id, modal);
+
+      if (!this.modalBackups) this.modalBackups = new Map();
+      this.modalBackups.set(id, "none");
+
+      modal.querySelector(".dom-tools-modal-close").addEventListener("click", () => {
+        this.hideModal({ ID: id });
+      });
+
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) this.hideModal({ ID: id });
+      });
+
+      this.showModal({ ID: id });
+    }
+
+    applyHTMLToModal(args) {
+      const id = String(args.ID);
+      const html = String(args.HTML);
+      const el = this._getEl(id);
+      if (!el) return;
+
+      el.dataset.hasHtml = "true";
+
+      if (/tw-modal-content/i.test(html) || /dom-tools-modal-content/i.test(html)) {
+        el.innerHTML = html;
+      } else {
+        el.innerHTML = `
+          <div class="tw-modal-content" style="
+            background: #2b2b2b;
+            color: #f0f0f0;
+            border-radius: 8px;
+            border: 1px solid #444;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            width: 80vw;
+            max-width: 600px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+          ">
+            <div style="
+              padding: 16px 24px;
+              background: #3a3a3a;
+              border-bottom: 1px solid #444;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 18px;
+              font-weight: 600;
+            ">
+              <span class="dom-tools-modal-title">Notice</span>
+              <button class="dom-tools-modal-close" style="
+                background: #555; border: none; color: #fff;
+                width: 28px; height: 28px; border-radius: 50%;
+                cursor: pointer; display: flex; align-items: center; justify-content: center;
+                font-size: 16px;
+              ">×</button>
+            </div>
+            <div class="dom-tools-modal-body" style="
+              padding: 20px 24px; overflow-y: auto; flex: 1;
+              font-size: 14px; line-height: 1.6; color: #ccc;
+            ">${html}</div>
+          </div>
+        `;
+      }
+
+      const closeBtn = el.querySelector(".dom-tools-modal-close");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", () => this.hideModal({ ID: id }));
+      }
+
+      el.addEventListener("click", (e) => {
+        if (e.target === el) this.hideModal({ ID: id });
+      });
+    }
+
+    applyHTMLToModalBody(args) {
+      const id = String(args.ID);
+      const html = String(args.HTML);
+      const el = this._getEl(id);
+      if (!el) return;
+
+      let body = el.querySelector(".dom-tools-modal-body");
+      if (!body) {
+        const content = el.querySelector(".tw-modal-content") || el;
+        body = document.createElement("div");
+        body.className = "dom-tools-modal-body";
+        body.style.cssText = "padding: 20px 24px; overflow-y: auto; flex: 1; font-size: 14px; line-height: 1.6; color: #ccc;";
+        content.appendChild(body);
+      }
+      body.innerHTML = html;
+      el.dataset.hasHtml = "true";
+    }
+
+    modalHasHTML(args) {
+      const el = this._getEl(args.ID);
+      if (!el) return false;
+      const body = el.querySelector(".dom-tools-modal-body");
+      const target = body || el;
+      const html = target.innerHTML.trim();
+      return html.length > 0;
+    }
+
+    showModal(args) {
+      const id = String(args.ID);
+      const el = this._getEl(id);
+      if (!el) return;
+
+      if (!this.modalBackups.has(id)) {
+        this.modalBackups.set(id, el.style.display || "");
+      }
+
+      el.style.setProperty("display", "flex", "important");
+    }
+
+    hideModal(args) {
+      const id = String(args.ID);
+      const el = this._getEl(id);
+      if (!el) return;
+
+      const backup = this.modalBackups.get(id);
+      el.style.display = backup !== undefined ? backup : "none";
+      el.classList.remove("dom-tools-modal-visible");
+    }
+
+    toggleModal(args) {
+      const id = String(args.ID);
+      const el = this._getEl(id);
+      if (!el) return;
+
+      if (this.isModalVisible({ ID: id })) {
+        this.hideModal({ ID: id });
+      } else {
+        this.showModal({ ID: id });
+      }
+    }
+
+    isModalVisible(args) {
+      const el = this._getEl(args.ID);
+      if (!el) return false;
+      const style = getComputedStyle(el);
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0"
+      );
+    }
+
+    removeModal(args) {
+      const id = String(args.ID);
+      const el = this._getEl(id);
+      if (!el) return;
+
+      el.remove();
+      if (this.createdElements) this.createdElements.delete(id);
+      if (this.modalBackups) this.modalBackups.delete(id);
+    }
+
+    setModalSize(args) {
+      const id = String(args.ID);
+      const el = this._getEl(id);
+      if (!el) return;
+
+      const content = el.querySelector(".tw-modal-content");
+      if (!content) return;
+
+      content.style.width = String(args.W);
+      content.style.height = String(args.H);
+      content.style.maxWidth = "none";
+      content.style.maxHeight = "none";
+    }
+
+    getWindowPosition(args) {
+      const data = this.windows[String(args.ID)];
+      if (!data) return "";
+      const axis = String(args.AXIS).toLowerCase();
+      if (axis === "x") return data.element.offsetLeft;
+      if (axis === "y") return data.element.offsetTop;
+      return `${"X: " + data.element.offsetLeft},${"Y: " + data.element.offsetTop}`;
     }
 
     setWindowCSS(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
+      const data = this.windows[String(args.ID)];
+      if (!data) return;
 
-        const prop = String(args.PROP);
-        const value = String(args.VALUE);
+      const prop = String(args.PROP);
+      const value = String(args.VALUE);
 
-        const apply = (node) => {
-            if (!node) return;
-            if (prop in node.style) node.style[prop] = value;
-            else node.style.setProperty(prop, value);
-        };
+      const apply = (node) => {
+        if (!node) return;
+        if (prop in node.style) node.style[prop] = value;
+        else node.style.setProperty(prop, value);
+      };
 
-        apply(data.element);
+      apply(data.element);
 
-        if (prop === 'color') {
-            if (data.titleBar) data.titleBar.style.color = value;
-            if (data.iframe) {
-                try {
-                    const doc = data.iframe.contentDocument;
-                    let tag = doc.getElementById('__domwin_color__');
-                    if (!value.trim()) {
-                        if (tag) tag.remove();
-                    } else {
-                        if (!tag) {
-                            tag = doc.createElement('style');
-                            tag.id = '__domwin_color__';
-                            (doc.head || doc.documentElement).appendChild(tag);
-                        }
-                        tag.textContent = `*{color:${value} !important;}`;
-                    }
-                } catch (e) {}
+      if (prop === "color") {
+        if (data.titleBar) data.titleBar.style.color = value;
+        if (data.iframe) {
+          try {
+            const doc = data.iframe.contentDocument;
+            let tag = doc.getElementById("__domwin_color__");
+            if (!value.trim()) {
+              if (tag) tag.remove();
+            } else {
+              if (!tag) {
+                tag = doc.createElement("style");
+                tag.id = "__domwin_color__";
+                (doc.head || doc.documentElement).appendChild(tag);
+              }
+              tag.textContent = `*{color:${value} !important;}`;
             }
-            return;
+          } catch (e) {}
         }
+        return;
+      }
 
-        if (prop === 'background' || prop === 'backgroundColor') {
-            if (data.iframe) {
-                apply(data.iframe);
-                try {
-                    const doc = data.iframe.contentDocument;
-                    apply(doc.documentElement);
-                    apply(doc.body);
-                } catch (e) {}
-            }
-            if (data.canvas) apply(data.canvas);
+      if (prop === "background" || prop === "backgroundColor") {
+        if (data.iframe) {
+          apply(data.iframe);
+          try {
+            const doc = data.iframe.contentDocument;
+            apply(doc.documentElement);
+            apply(doc.body);
+          } catch (e) {}
         }
+        if (data.canvas) apply(data.canvas);
+      }
     }
 
     setWindowCSSFull(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return;
+      const data = this.windows[String(args.ID)];
+      if (!data) return;
 
-        const styleStr = String(args.STYLE);
+      const styleStr = String(args.STYLE);
 
-        styleStr.split(';').forEach(rule => {
-            const idx = rule.indexOf(':');
-            if (idx === -1) return;
-            const name = rule.slice(0, idx).trim();
-            const val = rule.slice(idx + 1).trim();
-            if (!name) return;
-            try {
-                data.element.style.setProperty(name, val);
-            } catch (e) {}
-        });
+      styleStr.split(";").forEach((rule) => {
+        const idx = rule.indexOf(":");
+        if (idx === -1) return;
+        const name = rule.slice(0, idx).trim();
+        const val = rule.slice(idx + 1).trim();
+        if (!name) return;
+        try {
+          data.element.style.setProperty(name, val);
+        } catch (e) {}
+      });
     }
 
     getWindowCSS(args) {
-        const data = this.windows[String(args.ID)];
-        if (!data) return '';
+      const data = this.windows[String(args.ID)];
+      if (!data) return "";
 
-        const prop = String(args.PROP);
+      const prop = String(args.PROP);
 
-        if (prop in data.element.style) {
-            return data.element.style[prop] || '';
-        }
-        return getComputedStyle(data.element).getPropertyValue(prop) || '';
+      if (prop in data.element.style) {
+        return data.element.style[prop] || "";
+      }
+      return getComputedStyle(data.element).getPropertyValue(prop) || "";
     }
 
-    // Run JS trực tiếp trong ext: chỉnh DOM / drag logic của window hiện tại.
-    // Biến có sẵn trong code:
-    //   win, handle, iframe, canvas, titleBar, id, data
-    //   state  : trạng thái kéo (enabled, snapGrid, clamp, button, cursor, isDown ...)
-    //   api    : api.setPos(x,y), api.getPos()
-    //   iframeWindow / iframeDocument : window/document của iframe (nếu có)
-    //   drag.set(phase, code) / drag.append(phase, code) / drag.reset() / drag.get(phase)
-    //       phase = 'down' | 'move' | 'up'; code có biến e, win, handle, iframe, state, api
-    //   ext (this), Scratch, vm
-    //   __DOMWIN__ (= win, để tương thích bản cũ)
     runWindowJS(args) {
-        const id = String(args.ID);
-        const data = this.windows[id];
-        if (!data) return;
+      const id = String(args.ID);
+      const data = this.windows[id];
+      if (!data) return;
 
-        const code = String(args.CODE);
-        const win = data.element;
-        const self = this;
+      const code = String(args.CODE);
+      const win = data.element;
+      const self = this;
 
-        let iframeWindow = null, iframeDocument = null;
-        if (data.iframe) {
-            try {
-                iframeWindow = data.iframe.contentWindow;
-                iframeDocument = data.iframe.contentDocument;
-            } catch (e) {}
-        }
+      let iframeWindow = null,
+        iframeDocument = null;
+      if (data.iframe) {
+        try {
+          iframeWindow = data.iframe.contentWindow;
+          iframeDocument = data.iframe.contentDocument;
+        } catch (e) {}
+      }
 
-        const ensureLogic = () => (win._dragLogic = win._dragLogic || {
-            down: self._dragLogicDown,
-            move: self._dragLogicMove,
-            up:   self._dragLogicUp
+      const ensureLogic = () =>
+        (win._dragLogic = win._dragLogic || {
+          down: self._dragLogicDown,
+          move: self._dragLogicMove,
+          up: self._dragLogicUp,
         });
 
-        const drag = {
-            set(phase, src) {
-                ensureLogic()[phase] = String(src);
-                win._dragRebuild?.();
-            },
-            append(phase, src) {
-                ensureLogic()[phase] += '\n' + String(src);
-                win._dragRebuild?.();
-            },
-            reset() {
-                win._dragLogic = {
-                    down: self._dragLogicDefault,
-                    move: self._dragLogicMoveDefault,
-                    up:   self._dragLogicUpDefault
-                };
-                win._dragRebuild?.();
-            },
-            get(phase) {
-                return ensureLogic()[phase] ?? '';
-            }
-        };
+      const drag = {
+        set(phase, src) {
+          ensureLogic()[phase] = String(src);
+          win._dragRebuild?.();
+        },
+        append(phase, src) {
+          ensureLogic()[phase] += "\n" + String(src);
+          win._dragRebuild?.();
+        },
+        reset() {
+          win._dragLogic = {
+            down: self._dragLogicDefault,
+            move: self._dragLogicMoveDefault,
+            up: self._dragLogicUpDefault,
+          };
+          win._dragRebuild?.();
+        },
+        get(phase) {
+          return ensureLogic()[phase] ?? "";
+        },
+      };
 
-        try {
-            const fn = new Function(
-                'win', 'handle', 'iframe', 'canvas', 'titleBar', 'id', 'data',
-                'state', 'api', 'iframeWindow', 'iframeDocument', 'drag',
-                'ext', 'Scratch', 'vm', '__DOMWIN__',
-                code
-            );
-            fn.call(
-                win,
-                win, data.titleBar, data.iframe, data.canvas, data.titleBar, id, data,
-                win._dragState, win._dragApi, iframeWindow, iframeDocument, drag,
-                this, Scratch, vm, win
-            );
-        } catch (e) {
-            console.warn('[DOMplugin] runWindowJS lỗi:', e);
-        }
+      try {
+        const fn = new Function(
+          "win",
+          "handle",
+          "iframe",
+          "canvas",
+          "titleBar",
+          "id",
+          "data",
+          "state",
+          "api",
+          "iframeWindow",
+          "iframeDocument",
+          "drag",
+          "ext",
+          "Scratch",
+          "vm",
+          "__DOMWIN__",
+          code,
+        );
+        fn.call(
+          win,
+          win,
+          data.titleBar,
+          data.iframe,
+          data.canvas,
+          data.titleBar,
+          id,
+          data,
+          win._dragState,
+          win._dragApi,
+          iframeWindow,
+          iframeDocument,
+          drag,
+          this,
+          Scratch,
+          vm,
+          win,
+        );
+      } catch (e) {
+        console.warn("[DOMplugin] runWindowJS error:", e);
+      }
     }
-}
-const inst = runtime[`ext_${extId}`] = new extension();
+  }
+  const inst = (runtime[`ext_${extId}`] = new extension());
 
   inst._dragLogicDefault = `
 if (!state.enabled) return;
@@ -1278,24 +1885,24 @@ if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId);
 e.preventDefault();
 `;
 
-inst._dragLogicMoveDefault = `
+  inst._dragLogicMoveDefault = `
 if (!state.isDown) return;
 let x = state.startLeft + (e.clientX - state.offsetX);
 let y = state.startTop + (e.clientY - state.offsetY);
 api.setPos(x, y);
 `;
 
-inst._dragLogicUpDefault = `
+  inst._dragLogicUpDefault = `
 if (!state.isDown) return;
 state.isDown = false;
 if (iframe) iframe.style.pointerEvents = 'auto';
 `;
 
-inst._dragLogicDown = inst._dragLogicDefault;
-inst._dragLogicMove = inst._dragLogicMoveDefault;
-inst._dragLogicUp   = inst._dragLogicUpDefault;
+  inst._dragLogicDown = inst._dragLogicDefault;
+  inst._dragLogicMove = inst._dragLogicMoveDefault;
+  inst._dragLogicUp = inst._dragLogicUpDefault;
 
   Scratch.extensions.register(inst);
-  vm._events['MOREFIELDS_REGISTERED'] = (() => {});
-  vm.emit('MOREFIELDS_REGISTERED', inst, extension);
+  vm._events["MOREFIELDS_REGISTERED"] = () => {};
+  vm.emit("MOREFIELDS_REGISTERED", inst, extension);
 })(Scratch);
