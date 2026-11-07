@@ -10,7 +10,7 @@ if (!Scratch.extensions.unsandboxed) {
     throw new Error("must be ran unsandboxed");
 }
 // More field code
-const extId = 'JavascriptV2';
+const extId = 'javascript';
 const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
   const hasOwn = (object, property) => Object.prototype.hasOwnProperty.call(object, property);
   if (hasOwn(runtime, `ext_${extId}`)) {
@@ -23,38 +23,10 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
     vm.emitTargetsUpdate();
     setTimeout(function(){
       const err = document.querySelector('p[class^=crash-message_error-message]');
-      if (err) err.innerHTML = MESSAGE;
+      err.innerHTML = MESSAGE;
       Object.prototype.toString = toString;
     }, 100);
     throw new Error(MESSAGE);
-  }
-  function jsBeautifySimple(code) {
-    let indent = 0;
-    const src = String(code).replace(/\r\n/g, '\n');
-    const lines = src.replace(/\s*([{};])\s*/g, '$1\n').split('\n');
-    const out = [];
-    for (let raw of lines) {
-      let line = raw.trim();
-      if (!line) continue;
-      if (/^[}\])]/.test(line)) indent = Math.max(0, indent - 1);
-      out.push('  '.repeat(indent) + line);
-      if (/[{(\[]$/.test(line)) indent++;
-    }
-    return out.join('\n');
-  }
-  function jsMinifySimple(code) {
-    return String(code)
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/(^|[^:])\/\/.*$/gm, '$1')
-      .replace(/\s+/g, ' ')
-      .replace(/\s*([{};:,=+\-*/<>()\[\]])\s*/g, '$1')
-      .trim();
-  }
-  function countTokens(code) {
-    const m = String(code).match(
-      /[A-Za-z_$][\w$]*|\d+(\.\d+)?|"[^"]*"|'[^']*'|`[^`]*`|[{}()\[\];,.]|=>|===|!==|==|!=|<=|>=|&&|\|\||[+\-*/%<>=!&|^~?:]/g
-    );
-    return m ? m.length : 0;
   }
   const customFieldTypes = {};
   let Blockly = null;
@@ -140,7 +112,6 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
     function gotBlockly(_sb) {
     Blockly = _sb;
     const BlockSvg = Blockly.BlockSvg;
-
     const _setAttribute = SVGTextElement.prototype.setAttribute;
     SVGTextElement.prototype.setAttribute = function(attr, val, ...args) {
       if (String(val) === 'NaN' && (attr === 'x' || attr === 'y') && this.getAttribute('class') === 'blocklyText') {
@@ -150,7 +121,6 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
       }
       return _setAttribute.call(this, attr, val, ...args);
     };
-
     const _endBlockDrag = Blockly.BlockDragger.prototype.endBlockDrag
     Blockly.BlockDragger.prototype.endBlockDrag = function (...a) {
       const res = _endBlockDrag.apply(this, a);
@@ -167,24 +137,20 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
         super(opt_value);
         this.addArgType('String');
         this.addArgType(ArgumentType.TEXTAREA);
-        this._userW = 340;
-        this._userH = 170;
       }
       updateWidth() {
-        if (this._wrap && this._textareaHolder) {
-          const totalW = this._userW;
-          const totalH = this._userH;
-          this._textareaHolder.setAttribute('width', String(totalW + 3));
-          this._textareaHolder.setAttribute('height', String(totalH + 3));
-          this.size_.width = totalW - BlockSvg.NOTCH_START_PADDING + 2 * BlockSvg.NOTCH_START_PADDING / 3;
-          this.size_.height = totalH + BlockSvg.NOTCH_HEIGHT + 1.5 + BlockSvg.NOTCH_START_PADDING / 3;
+        if (this._textarea) {
+          const width = this._textarea.offsetWidth + 1, height = this._textarea.offsetHeight + 1;
+          this._textareaHolder.setAttribute('width', String(width + 3));
+          this._textareaHolder.setAttribute('height', String(height + 3));
+          this.size_.width = width - BlockSvg.NOTCH_START_PADDING + 2 * BlockSvg.NOTCH_START_PADDING / 3;
+          this.size_.height = height + BlockSvg.NOTCH_HEIGHT + 1.5 + BlockSvg.NOTCH_START_PADDING / 3;
         } else {
-          this.size_.width = this._FakeWidth || 340;
-          this.size_.height = this._FakeHeight || 170;
+          this.size_.width = this._FakeWidth || 300;
+          this.size_.height = this._FakeHeight || 150;
         }
       }
       dispose() {
-        if (this._ro) this._ro.disconnect();
         super.dispose();
       }
       init(...initArgs) {
@@ -195,148 +161,45 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
           this.textNode__.style.display = 'none';
           _fixColours.call(this, false, this.sourceBlock_.parentBlock_.colour_);
         }
-        this._FakeWidth ??= 340;
-        this._FakeHeight ??= 170;
+        this._FakeWidth ??= 300;
+        this._FakeHeight ??= 150;
         const textareaHolder = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-        textareaHolder.setAttribute('style',
-          'color-scheme: Dark;' +
-          'color: #e06c75;' +
-          'overflow: visible;'
-        );
-        textareaHolder.setAttribute('x', '6');
-        textareaHolder.setAttribute('y', String(BlockSvg.NOTCH_START_PADDING / 2 - 0.375));
-        textareaHolder.addEventListener('mousedown', (e) => e.stopPropagation());
-        const wrap = document.createElement('div');
-        wrap.setAttribute('style',
-          'display: flex;' +
-          'flex-direction: row;' +
-          'width: ' + this._userW + 'px;' +
-          'height: ' + this._userH + 'px;' +
-          'background: #1e1e1e;' +
-          'border: 1px solid #3c3c3c;' +
-          'border-radius: 4px;' +
-          'overflow: hidden;' +
-          'box-sizing: border-box;' +
-          'font-family: Consolas, Monaco, "Courier New", monospace;' +
-          'font-size: 12px;' +
-          'line-height: 1.4;' +
-          'color-scheme: Dark;' +
-          'color: #e06c75;' +
-          'resize: both;'
-        );
-        const gutter = document.createElement('div');
-        gutter.setAttribute('style',
-          'flex-shrink: 0;' +
-          'width: 32px;' +
-          'background: #252526;' +
-          'color: #858585;' +
-          'text-align: right;' +
-          'padding: 6px 6px 6px 8px;' +
-          'user-select: none;' +
-          'overflow: hidden;' +
-          'border-right: 1px solid #3c3c3c;' +
-          'line-height: 1.4;' +
-          'font-size: 12px;' +
-          'white-space: pre;' +
-          'box-sizing: border-box;' +
-          'color-scheme: Dark;'
-        );
-        gutter.textContent = '1';
-        const textarea = document.createElement('textarea');
-        textarea.value = this.getValue() ?? '';
-        textarea.spellcheck = false;
-        textarea.wrap = 'off';
-        textarea.setAttribute('style',
-          'flex: 1;' +
-          'background: #1e1e1e;' +
-          'color: #d4d4d4;' +
-          'border: none;' +
-          'outline: none;' +
-          'padding: 6px 8px;' +
-          'font-family: Consolas, Monaco, "Courier New", monospace;' +
-          'font-size: 12px;' +
-          'line-height: 1.4;' +
-          'resize: none;' +
-          'white-space: pre;' +
-          'overflow: auto;' +
-          'tab-size: 2;' +
-          'box-sizing: border-box;' +
-          'color-scheme: Dark;'
-        );
-
-
-        const updateGutter = () => {
-          const n = textarea.value.split('\n').length;
-          let out = '';
-          for (let i = 1; i <= n; i++) out += i + '\n';
-          gutter.textContent = out;
-        };
-
-
-        textarea.addEventListener('scroll', () => {
-          gutter.scrollTop = textarea.scrollTop;
-        });
-
-
-        textarea.addEventListener('keydown', (e) => {
+        textareaHolder.setAttribute('style', 'color-scheme: Dark; color: #FFFFFF;');
+        textareaHolder.addEventListener('keydown', (e) => {
           e.stopPropagation();
           if (e.key === 'Tab') {
             e.preventDefault();
-            const s = textarea.selectionStart;
-            const en = textarea.selectionEnd;
-            textarea.value = textarea.value.substring(0, s) + '  ' + textarea.value.substring(en);
-            textarea.selectionStart = textarea.selectionEnd = s + 2;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + 2;
             this.setValue(textarea.value);
-            updateGutter();
           }
         });
-        textarea.addEventListener('keyup', (e) => e.stopPropagation());
-        textarea.addEventListener('input', () => {
+        textareaHolder.addEventListener('keyup', (e) => e.stopPropagation());
+        textareaHolder.addEventListener('input', () => {
           this.setValue(textarea.value);
-          updateGutter();
         });
-        textarea.addEventListener('mousedown', (e) => e.stopPropagation());
-
-
-        wrap.appendChild(gutter);
-        wrap.appendChild(textarea);
-        textareaHolder.appendChild(wrap);
-
-
-        this._textareaHolder = textareaHolder;
-        this._textarea = textarea;
-        this._gutter = gutter;
-        this._wrap = wrap;
-
+        textareaHolder.setAttribute('x', '6');
+        textareaHolder.setAttribute('y', String(BlockSvg.NOTCH_START_PADDING / 2 - 0.375));
+        textareaHolder.addEventListener('mousedown', (e) => e.stopPropagation());
+        const textarea = document.createElement('textarea');
+        textarea.value = this.getValue() ?? '';
+        textarea.style.width = '300px';
+        textarea.style.height = '150px';
+        textarea.addEventListener('input', () => this._onInput());
+        textarea.addEventListener('mouseup', () => this._resizeHolder());
         if (this.fieldGroup_) {
           this.fieldGroup_.insertAdjacentElement('afterend', textareaHolder);
+          textareaHolder.appendChild(textarea);
+          this._textareaHolder = textareaHolder;
+          this._textarea = textarea;
           if (this.sourceBlock_ && this.sourceBlock_.isInFlyout) {
             textarea.disabled = true;
-            wrap.setAttribute('style',
-              wrap.getAttribute('style') +
-              'resize: none;' +
-              'pointer-events: none;' +
-              'opacity: 0.85;'
-            );
+            textarea.style.resize = 'none';
           }
-          if (window.ResizeObserver) {
-            this._ro = new ResizeObserver(() => {
-
-              if (this._wrap) {
-                const w = this._wrap.offsetWidth;
-                const h = this._wrap.offsetHeight;
-                if (w && h && (w !== this._userW || h !== this._userH)) {
-                  this._userW = w;
-                  this._userH = h;
-                }
-              }
-              this._resizeHolder();
-            });
-            this._ro.observe(this._wrap);
-          }
+          new ResizeObserver(() => this._resizeHolder()).observe(this._textarea);
         }
-
-        updateGutter();
         this._resizeHolder();
       }
       _resizeHolder() {
@@ -353,8 +216,7 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
       }
     }
     }
-
-  gotBlockly._on = new Set();
+    gotBlockly._on = new Set();
   gotBlockly.when = function(callback) {
     if (Blockly) {
       callback(Blockly);
@@ -399,7 +261,7 @@ const { BlockType, ArgumentType, vm } = Scratch, runtime = vm.runtime;
       ws.getFlyout().clearOldBlocks_();
       vm.extensionManager.refreshBlocks();
       ws.refreshToolboxSelection_();
-    } catch {/**/}
+    } catch {}
   };
   if (typeof Scratch?.gui === 'object') Scratch.gui.getBlockly().then((Blockly) => gotBlockly(Blockly));
   const xmlEscape = (unsafe) => unsafe.replace(/[<>&'"]/g, c => {
@@ -568,7 +430,6 @@ class extensionAPI {
       }];
     }
   }
-
   class extension extends extensionAPI {
     static exports = {
       hasOwn,
@@ -579,6 +440,7 @@ class extensionAPI {
       _moveDropdown,
       extensionAPI,
       xmlEscape,
+      get padding() { return padding; },
     };
 
     getInfo() {
@@ -602,6 +464,9 @@ class extensionAPI {
             allowDropAnywhere: true,
             blockShape: 3,
           },
+
+          { blockType: BlockType.XML, xml: '<sep gap="140" />' },
+
           {
             opcode: 'ReturnValue',
             blockType: BlockType.REPORTER,
@@ -615,7 +480,7 @@ class extensionAPI {
             },
           },
 
-          { blockType: BlockType.XML, xml: '<sep gap="40" />' },
+          { blockType: BlockType.XML, xml: '<sep gap="145" />' },
 
           {
             opcode: 'formatCode',
