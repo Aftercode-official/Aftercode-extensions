@@ -561,8 +561,8 @@
       const getInfo = {
         id: extId,
         name: "DOM plugin v4",
-        color1: "#2ECC71",
-        color2: "#27AE60",
+        color1: "#4C97FF",
+        color2: "#3373CC",
         blocks: [
           {
             opcode: "createWindow",
