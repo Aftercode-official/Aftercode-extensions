@@ -1,7 +1,7 @@
 // Name: Asset Downloader & Temp Vars
 // ID: assetDownloaderTempVars
 // Description: some stuff from cunken idk
-// By: Cunken <https://turbows.pages.dev/users/cunken_py>
+// By: Cunken <https://scratch.mit.edu/users/cunken/>
 // License: MIT
 
 (function (Scratch) {

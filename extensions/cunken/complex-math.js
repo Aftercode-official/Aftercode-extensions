@@ -1,7 +1,7 @@
 // Name: HyperSpace Math v2
 // Description: Extension for complex numbers and quaternions
 // ID: hyperspacemath
-// By: Cunken <https://turbows.pages.dev/users/cunken_py>
+// By: Cunken <https://scratch.mit.edu/users/cunken/>
 // License: MIT
 
 (function(Scratch) {
