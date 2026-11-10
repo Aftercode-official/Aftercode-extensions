@@ -1,17 +1,17 @@
-// Name: HyperSpace Math
+// Name: HyperSpace Math v2
 // Description: Extension for complex numbers and quaternions
 // ID: hyperspacemath
 // By: Cunken <https://turbows.pages.dev/users/cunken_py>
 // License: MIT
 
-(function (Scratch) {
+(function(Scratch) {
     'use strict';
 
     class HyperSpaceMathExtension {
         getInfo() {
             return {
                 id: 'hyperspacemath',
-                name: 'HyperSpace Math',
+                name: 'HyperSpace Math v2',
                 color1: '#9cb3ff',
                 color2: '#7f9be6',
                 color3: '#6882d1',
@@ -22,6 +22,22 @@
                         text: 'i [NUM]',
                         arguments: {
                             NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 5 }
+                        }
+                    },
+                    {
+                        opcode: 'pureImaginaryJ',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: 'j [NUM]',
+                        arguments: {
+                            NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 3 }
+                        }
+                    },
+                    {
+                        opcode: 'pureImaginaryK',
+                        blockType: Scratch.BlockType.REPORTER,
+                        text: 'k [NUM]',
+                        arguments: {
+                            NUM: { type: Scratch.ArgumentType.NUMBER, defaultValue: 4 }
                         }
                     },
                     {
@@ -54,13 +70,13 @@
                         blockType: Scratch.BlockType.REPORTER,
                         text: '4D [X] [OP4] [Y]',
                         arguments: {
-                            X: { type: Scratch.ArgumentType.STRING, defaultValue: '(1, 2, 3, 4)' },
+                            X: { type: Scratch.ArgumentType.STRING, defaultValue: '5j' },
                             OP4: {
                                 type: Scratch.ArgumentType.STRING,
                                 menu: 'op4Menu',
                                 defaultValue: '+'
                             },
-                            Y: { type: Scratch.ArgumentType.STRING, defaultValue: '(5, 6, 7, 8)' }
+                            Y: { type: Scratch.ArgumentType.STRING, defaultValue: '6k' }
                         }
                     },
                     {
@@ -82,13 +98,13 @@
                     {
                         opcode: 'checkSet',
                         blockType: Scratch.BlockType.BOOLEAN,
-                        text: '[X] thuộc tập [SET]?',
+                        text: '[X] ∈ [SET]?',
                         arguments: {
                             X: { type: Scratch.ArgumentType.STRING, defaultValue: '5' },
                             SET: {
                                 type: Scratch.ArgumentType.STRING,
                                 menu: 'setMenu',
-                                defaultValue: 'R'
+                                defaultValue: 'ℝ'
                             }
                         }
                     }
@@ -109,19 +125,20 @@
                         items: [
                             { text: '+', value: '+' },
                             { text: '-', value: '-' },
-                            { text: '* (nhân Quaternion)', value: '*' }
+                            { text: '*', value: '*' }
                         ]
                     },
                     setMenu: {
                         acceptReporters: false,
                         items: [
-                            { text: 'N (Tự nhiên)', value: 'N' },
-                            { text: 'Z (Nguyên)', value: 'Z' },
-                            { text: 'P (Nguyên tố)', value: 'P' },
-                            { text: 'Q (Hữu tỉ)', value: 'Q' },
-                            { text: 'R (Thực)', value: 'R' },
-                            { text: 'C (Phức)', value: 'C' },
-                            { text: 'H (Quaternion 4D)', value: 'H' }
+                            { text: 'ℕ', value: 'N' },
+                            { text: '𝕎', value: 'W' },
+                            { text: 'ℤ', value: 'Z' },
+                            { text: 'ℙ', value: 'P' },
+                            { text: 'ℚ', value: 'Q' },
+                            { text: 'ℝ', value: 'R' },
+                            { text: 'ℂ', value: 'C' },
+                            { text: 'ℍ', value: 'H' }
                         ]
                     }
                 }
@@ -138,112 +155,72 @@
             return true;
         }
 
-        _parseQuaternion(input) {
-            if (!input || typeof input !== 'string') return { q: [0,0,0,0], valid: false };
-            let s = input.trim();
-            s = s.replace(/[()]/g, '');
-            let parts = s.split(',').map(item => parseFloat(item.trim()));
-            if (parts.length !== 4 || parts.some(isNaN)) {
-                return { q: [0,0,0,0], valid: false };
-            }
-            return { q: parts, valid: true };
-        }
-
         _formatQuaternion(q) {
             let r = q.map(val => Math.round(val * 1e10) / 1e10);
-            return `(${r[0]}, ${r[1]}, ${r[2]}, ${r[3]})`;
+            let w = r[0], x = r[1], y = r[2], z = r[3];
+            let terms = [];
+
+            if (w !== 0) terms.push(w.toString());
+            if (x !== 0) {
+                let absX = Math.abs(x);
+                let xStr = absX === 1 ? 'i' : `${absX}i`;
+                terms.push(terms.length > 0 ? (x > 0 ? `+ ${xStr}` : `- ${xStr}`) : (x < 0 ? `-${xStr}` : xStr));
+            }
+            if (y !== 0) {
+                let absY = Math.abs(y);
+                let yStr = absY === 1 ? 'j' : `${absY}j`;
+                terms.push(terms.length > 0 ? (y > 0 ? `+ ${yStr}` : `- ${yStr}`) : (y < 0 ? `-${yStr}` : yStr));
+            }
+            if (z !== 0) {
+                let absZ = Math.abs(z);
+                let zStr = absZ === 1 ? 'k' : `${absZ}k`;
+                terms.push(terms.length > 0 ? (z > 0 ? `+ ${zStr}` : `- ${zStr}`) : (z < 0 ? `-${zStr}` : zStr));
+            }
+            return terms.length > 0 ? terms.join(' ') : '0';
         }
 
         _parse(input) {
-            if (typeof input === 'number') {
-                return { r: input, i: 0, valid: true, isH: false };
-            }
-            if (!input || typeof input !== 'string') {
-                return { r: 0, i: 0, valid: false, isH: false };
-            }
+            if (typeof input === 'number') return { q4: [input, 0, 0, 0], valid: true };
+            if (!input || typeof input !== 'string') return { q4: [0, 0, 0, 0], valid: false };
 
             let s = input.replace(/\s+/g, '');
-            if (s === '') return { r: 0, i: 0, valid: false, isH: false };
+            if (s === '') return { q4: [0, 0, 0, 0], valid: false };
 
             if (s.startsWith('(') && s.endsWith(')')) {
-                let h4 = _parseQ_internal(s);
-                return { r: h4.q[0], i: 0, q4: h4.q, valid: h4.valid, isH: true };
+                let parts = s.slice(1, -1).split(',').map(item => parseFloat(item.trim()));
+                if (parts.length === 4 && !parts.some(isNaN)) return { q4: parts, valid: true };
             }
 
-            if (!/^[-+]?(\d+(\.\d*)?|\.\d+)?([-+](\d+(\.\d*)?|\.\d+)i)?$|^[-+]?(\d+(\.\d*)?|\.\d+)?i$|^[-+]?i$/.test(s)) {
-                return { r: 0, i: 0, valid: false, isH: false };
-            }
+            let q = [0, 0, 0, 0];
+            let tokens = s.match(/[+-]?[^+-]+/g);
+            if (!tokens) return { q4: q, valid: false };
 
-            if (!s.includes('i')) {
-                const num = Number(s);
-                return { r: isNaN(num) ? 0 : num, i: 0, valid: !isNaN(num), isH: false };
-            }
-
-            if (s === 'i') return { r: 0, i: 1, valid: true, isH: false };
-            if (s === '-i') return { r: 0, i: -1, valid: true, isH: false };
-
-            if (s.endsWith('i') && !s.slice(0, -1).includes('i') && !s.slice(0, -1).includes('+') && !s.slice(0, -1).slice(1).includes('-')) {
-                const val = parseFloat(s.slice(0, -1));
-                return { r: 0, i: isNaN(val) ? 1 : val, valid: true, isH: false };
-            }
-
-            let lastSignIdx = -1;
-            for (let idx = 1; idx < s.length - 1; idx++) {
-                if (s[idx] === '+' || s[idx] === '-') {
-                    lastSignIdx = idx;
-                }
-            }
-
-            let r = 0, i = 0;
-            if (lastSignIdx !== -1) {
-                const realPart = s.substring(0, lastSignIdx);
-                const imagPart = s.substring(lastSignIdx);
-                r = parseFloat(realPart) || 0;
-                let imStr = imagPart.replace('i', '');
-                if (imStr === '+' || imStr === '') i = 1;
-                else if (imStr === '-') i = -1;
-                else i = parseFloat(imStr) || 0;
-            } else {
-                if (s.endsWith('i')) {
-                    let imStr = s.replace('i', '');
-                    i = (imStr === '' || imStr === '+') ? 1 : (imStr === '-' ? -1 : parseFloat(imStr) || 0);
+            let valid = true;
+            for (let token of tokens) {
+                if (token.endsWith('i') && !token.includes('j') && !token.includes('k')) {
+                    let val = parseFloat(token.replace('i', '')) || (token.includes('-') ? -1 : 1);
+                    q[1] += val;
+                } else if (token.endsWith('j')) {
+                    let val = parseFloat(token.replace('j', '')) || (token.includes('-') ? -1 : 1);
+                    q[2] += val;
+                } else if (token.endsWith('k')) {
+                    let val = parseFloat(token.replace('k', '')) || (token.includes('-') ? -1 : 1);
+                    q[3] += val;
                 } else {
-                    r = parseFloat(s) || 0;
+                    let val = parseFloat(token);
+                    if (isNaN(val)) valid = false;
+                    else q[0] += val;
                 }
             }
-
-            return { r, i, valid: true, isH: false };
+            return { q4: q, valid: valid };
         }
 
-        _format(r, i) {
-            r = Math.round(r * 1e10) / 1e10;
-            i = Math.round(i * 1e10) / 1e10;
-
-            if (r === 0 && i === 0) return '0';
-            if (r === 0) {
-                if (i === 1) return 'i';
-                if (i === -1) return '-i';
-                return `${i}i`;
-            }
-            if (i === 0) return `${r}`;
-
-            const sign = i >= 0 ? '+' : '-';
-            const absI = Math.abs(i);
-            const iStr = absI === 1 ? 'i' : `${absI}i`;
-            return `${r} ${sign} ${iStr}`;
-        }
-
-        pureImaginary(args) {
-            const n = Number(args.NUM) || 0;
-            return this._format(0, n);
-        }
+        pureImaginary(args) { return this._formatQuaternion([0, Number(args.NUM) || 0, 0, 0]); }
+        pureImaginaryJ(args) { return this._formatQuaternion([0, 0, Number(args.NUM) || 0, 0]); }
+        pureImaginaryK(args) { return this._formatQuaternion([0, 0, 0, Number(args.NUM) || 0]); }
 
         createQuaternion(args) {
-            let w = Number(args.W) || 0;
-            let x = Number(args.X) || 0;
-            let y = Number(args.Y) || 0;
-            let z = Number(args.Z) || 0;
-            return this._formatQuaternion([w, x, y, z]);
+            return this._formatQuaternion([Number(args.W) || 0, Number(args.X) || 0, Number(args.Y) || 0, Number(args.Z) || 0]);
         }
 
         calculateComplex(args) {
@@ -251,149 +228,84 @@
             const c2 = this._parse(args.Y);
             if (!c1.valid || !c2.valid) return '0';
 
-            const op = args.OP;
-            let r = 0, i = 0;
+            let r = c1.q4[0], i = c1.q4[1];
+            let r2 = c2.q4[0], i2 = c2.q4[1];
+            let resR = 0, resI = 0;
 
-            switch (op) {
-                case '+':
-                    r = c1.r + c2.r;
-                    i = c1.i + c2.i;
-                    break;
-                case '-':
-                    r = c1.r - c2.r;
-                    i = c1.i - c2.i;
-                    break;
-                case '*':
-                    r = c1.r * c2.r - c1.i * c2.i;
-                    i = c1.r * c2.i + c1.i * c2.r;
-                    break;
+            switch (args.OP) {
+                case '+': resR = r + r2; resI = i + i2; break;
+                case '-': resR = r - r2; resI = i - i2; break;
+                case '*': resR = r * r2 - i * i2; resI = r * i2 + i * r2; break;
                 case '/':
-                    const denom = c2.r * c2.r + c2.i * c2.i;
-                    if (denom !== 0) {
-                        r = (c1.r * c2.r + c1.i * c2.i) / denom;
-                        i = (c1.i * c2.r - c1.r * c2.i) / denom;
-                    }
+                    let denom = r2 * r2 + i2 * i2;
+                    if (denom !== 0) { resR = (r * r2 + i * i2) / denom; resI = (i * r2 - r * i2) / denom; }
                     break;
                 case '^':
-                    const n = c2.r;
-                    const modulus = Math.hypot(c1.r, c1.i);
-                    const theta = Math.atan2(c1.i, c1.r);
-                    const modN = Math.pow(modulus, n);
-                    r = modN * Math.cos(n * theta);
-                    i = modN * Math.sin(n * theta);
+                    let mod = Math.hypot(r, i), th = Math.atan2(i, r), n = r2;
+                    resR = Math.pow(mod, n) * Math.cos(n * th);
+                    resI = Math.pow(mod, n) * Math.sin(n * th);
                     break;
             }
-
-            return this._format(r, i);
+            return this._formatQuaternion([resR, resI, 0, 0]);
         }
 
         calculateQuaternion(args) {
-            let h1 = this._parseQuaternion(args.X);
-            let h2 = this._parseQuaternion(args.Y);
-            if (!h1.valid || !h2.valid) return '(0, 0, 0, 0)';
+            let h1 = this._parse(args.X);
+            let h2 = this._parse(args.Y);
+            if (!h1.valid || !h2.valid) return '0';
 
-            let a = h1.q;
-            let b = h2.q;
-            let op = args.OP4;
-
-            if (op === '+') {
-                return this._formatQuaternion([a[0]+b[0], a[1]+b[1], a[2]+b[2], a[3]+b[3]]);
-            } else if (op === '-') {
-                return this._formatQuaternion([a[0]-b[0], a[1]-b[1], a[2]-b[2], a[3]-b[3]]);
-            } else if (op === '*') {
+            let a = h1.q4, b = h2.q4;
+            if (args.OP4 === '+') return this._formatQuaternion([a[0]+b[0], a[1]+b[1], a[2]+b[2], a[3]+b[3]]);
+            if (args.OP4 === '-') return this._formatQuaternion([a[0]-b[0], a[1]-b[1], a[2]-b[2], a[3]-b[3]]);
+            if (args.OP4 === '*') {
                 let w = a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3];
                 let x = a[0]*b[1] + a[1]*b[0] + a[2]*b[3] - a[3]*b[2];
                 let y = a[0]*b[2] - a[1]*b[3] + a[2]*b[0] + a[3]*b[1];
                 let z = a[0]*b[3] + a[1]*b[2] - a[2]*b[1] + a[3]*b[0];
                 return this._formatQuaternion([w, x, y, z]);
             }
-            return '(0, 0, 0, 0)';
+            return '0';
         }
 
         sqrtComplex(args) {
-            const c = this._parse(args.X);
+            let c = this._parse(args.X);
             if (!c.valid) return '0';
-
-            if (c.isH) {
-                let q = c.q4;
-                let w = q[0], x = q[1], y = q[2], z = q[3];
-                let vecNorm = Math.hypot(x, y, z);
-                let normQ = Math.hypot(w, x, y, z);
-
-                if (vecNorm === 0) {
-                    if (w >= 0) return this._formatQuaternion([Math.sqrt(w), 0, 0, 0]);
-                    else return this._formatQuaternion([0, Math.sqrt(-w), 0, 0]);
-                }
-
-                let factor = Math.sqrt((normQ + w) / 2);
-                let vFactor = 1 / (2 * factor);
-                return this._formatQuaternion([
-                    factor,
-                    x * vFactor,
-                    y * vFactor,
-                    z * vFactor
-                ]);
-            }
-
-            const modulus = Math.hypot(c.r, c.i);
-            const theta = Math.atan2(c.i, c.r);
-            const sqrtMod = Math.sqrt(modulus);
-            const halfTheta = theta / 2;
-
-            let r = sqrtMod * Math.cos(halfTheta);
-            let i = sqrtMod * Math.sin(halfTheta);
-
-            return this._format(r, i);
+            let [w, x, y, z] = c.q4;
+            let vecNorm = Math.hypot(x, y, z), normQ = Math.hypot(w, x, y, z);
+            if (vecNorm === 0) return w >= 0 ? this._formatQuaternion([Math.sqrt(w), 0, 0, 0]) : this._formatQuaternion([0, Math.sqrt(-w), 0, 0]);
+            let f = Math.sqrt((normQ + w) / 2), vf = 1 / (2 * f);
+            return this._formatQuaternion([f, x * vf, y * vf, z * vf]);
         }
 
         swapComplex(args) {
-            const c = this._parse(args.X);
+            let c = this._parse(args.X);
             if (!c.valid) return '0';
-            if (c.isH) {
-                let q = c.q4;
-                return this._formatQuaternion([q[0], -q[1], -q[2], -q[3]]);
-            }
-            return this._format(c.i, c.r);
+            let q = c.q4;
+            return this._formatQuaternion([q[0], -q[1], -q[2], -q[3]]);
         }
 
         checkSet(args) {
-            const c = this._parse(args.X);
+            let c = this._parse(args.X);
             if (!c.valid) return false;
+            let [val, i, j, k] = c.q4;
+            let isReal = Math.abs(i) < 1e-9 && Math.abs(j) < 1e-9 && Math.abs(k) < 1e-9;
+            let isCplx = Math.abs(j) < 1e-9 && Math.abs(k) < 1e-9;
 
-            const setType = args.SET;
-            if (setType === 'H') return c.isH;
-            if (setType === 'C') return !c.isH;
+            if (args.SET === 'H') return true;
+            if (args.SET === 'C') return isCplx;
+            if (!isReal) return false;
 
-            if (c.isH) return false;
-            if (Math.abs(c.i) > 1e-9) return false;
-
-            const val = c.r;
-            const isInt = Math.abs(val - Math.round(val)) < 1e-9;
-
-            switch (setType) {
-                case 'R':
-                    return true;
-                case 'Q':
-                    return !isNaN(val);
-                case 'Z':
-                    return isInt;
-                case 'N':
-                    return isInt && val >= 0;
-                case 'P':
-                    return this._isPrime(val);
-                default:
-                    return false;
+            let isInt = Math.abs(val - Math.round(val)) < 1e-9;
+            switch (args.SET) {
+                case 'R': return true;
+                case 'Q': return !isNaN(val);
+                case 'Z': return isInt;
+                case 'W': return isInt && val >= 0;
+                case 'N': return isInt && val > 0;
+                case 'P': return this._isPrime(val);
+                default: return false;
             }
         }
-    }
-
-    function _parseQ_internal(input) {
-        let s = input.replace(/[()]/g, '');
-        let parts = s.split(',').map(item => parseFloat(item.trim()));
-        if (parts.length !== 4 || parts.some(isNaN)) {
-            return { q: [0,0,0,0], valid: false };
-        }
-        return { q: parts, valid: true };
     }
 
     Scratch.extensions.register(new HyperSpaceMathExtension());
