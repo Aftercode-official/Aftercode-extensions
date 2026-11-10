@@ -1,4 +1,4 @@
-// Name: Complex number
+// Name: Complex number v3
 // Description: Extension for complex numbers and quaternions
 // ID: hyperspacemath
 // By: Cunken <https://scratch.mit.edu/users/cunken/>
