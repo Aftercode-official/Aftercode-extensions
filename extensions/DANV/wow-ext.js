@@ -7,7 +7,7 @@
 (function (Scratch) {
   "use strict";
 
-  const WOW_ICON_URL = "https://raw.githubusercontent.com/danvPR/workshop/main/Assets/WOW%20Badge.png";
+  const WOW_ICON_URL = "https://turboshare.org.uk/Assets/WOW%20Badge.png";
 
   const TRUSTED_PARENT_ORIGINS = [
     "https://turbows.pages.dev",
