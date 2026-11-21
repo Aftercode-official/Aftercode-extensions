@@ -4,103 +4,263 @@
     <meta charset="utf8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Aftercode Extension Gallery</title>
-    <meta name="theme-color" content="#ff4c4c">
+    <meta name="theme-color" content="#ffd700">
     <meta name="description" content="The official place to find powerful unsandboxed extensions for Aftercode.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     <style>
       :root {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        color-scheme: light dark;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          color: #eee;
-          background: #111;
-        }
-        a {
-          color: #56b2ff;
-        }
-        a:visited {
-          color: #f192ff;
-        }
-        a:active {
-          color: red;
-        }
-        .invert-dark {
-          filter: invert(100%);
-        }
+        --bg-primary: #09090b;
+        --bg-secondary: #121216;
+        --bg-card: rgba(24, 24, 29, 0.75);
+        --border-subtle: rgba(255, 215, 0, 0.16);
+        --border-hover: rgba(255, 215, 0, 0.65);
+        --gold-primary: #ffd700;
+        --gold-amber: #f59e0b;
+        --text-main: #f4f4f5;
+        --text-muted: #a1a1aa;
+        --radius-lg: 16px;
+        --radius-md: 10px;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        color-scheme: dark;
       }
 
-      h1 {
-        margin: 16px 0;
+      * {
+        box-sizing: border-box;
       }
-      h2, h3, p {
-        margin: 8px 0;
+
+      body {
+        margin: 0;
+        padding: 0 16px;
+        background-color: var(--bg-primary);
+        color: var(--text-main);
+        background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 24px 24px;
+        min-height: 100vh;
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      a {
+        color: var(--gold-primary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+      }
+      a:hover {
+        color: #fff08a;
+      }
+
+      h1, h2, h3 {
+        font-family: "Space Grotesk", "Inter", sans-serif;
+        margin: 0;
       }
 
       .section {
-        max-width: 928px;
-        margin: 24px auto;
+        max-width: 1120px;
+        margin: 32px auto;
+      }
+
+      /* Header Styling */
+      .header {
+        text-align: center;
+        padding-top: 24px;
       }
 
       .header h1 {
-        font-size: 2.5em;
-        display: flex;
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 700;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-weight: normal;
-        text-align: center;
+        gap: 16px;
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
       }
+
+      .header h1 div {
+        background: linear-gradient(135deg, #ffffff 25%, #ffd700 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
       .header svg {
-        width: 56px;
-        height: 56px;
+        width: 64px;
+        height: 64px;
         flex-shrink: 0;
-        margin: 0 8px 0 0;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
+      .header h1:hover svg {
+        transform: rotate(-4deg) scale(1.06);
+      }
+
+      .header-subtitle {
+        color: var(--text-muted);
+        max-width: 680px;
+        margin: 0 auto 8px auto;
+        font-size: 1.05rem;
+      }
+
       @media (max-width: 750px) {
         .header h1 {
           flex-direction: column;
+          gap: 10px;
         }
-        .header svg {
-          margin: 0 0 8px 0;
+      }
+
+      /* Infoboxes & Dev Tools */
+      .infobox-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 24px;
+        text-align: left;
+      }
+      @media (max-width: 768px) {
+        .infobox-grid {
+          grid-template-columns: 1fr;
         }
       }
 
       .infobox, .development-tools {
-        padding: 8px;
-        margin: 8px 0;
-        border-radius: 8px;
-        background: rgba(0, 195, 255, 0.245);
-        border: 1px solid rgba(0, 187, 255, 0.604);
+        padding: 16px 20px;
+        border-radius: var(--radius-md);
+        background: rgba(56, 189, 248, 0.08);
+        border: 1px solid rgba(56, 189, 248, 0.28);
+        backdrop-filter: blur(10px);
+        font-size: 0.92rem;
+        color: #e0f2fe;
       }
+
       .infobox-warning {
-        background-color: rgba(255, 0, 0, 0.245);
-        border-color: rgba(255, 0, 0, 0.446);
+        background: rgba(239, 68, 68, 0.09);
+        border-color: rgba(239, 68, 68, 0.32);
+        color: #fee2e2;
       }
+
       .infobox-title {
-        font-weight: bold;
-        margin-bottom: 4px;
+        font-weight: 700;
+        font-size: 0.98rem;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .infobox-warning .infobox-title {
+        color: #fca5a5;
+      }
+      .infobox:not(.infobox-warning) .infobox-title {
+        color: #7dd3fc;
       }
 
       .development-tools {
-        background-color: rgba(200, 0, 255, 0.245);
-        border-color: rgba(234, 0, 255, 0.604);
+        background: rgba(192, 132, 252, 0.1);
+        border-color: rgba(192, 132, 252, 0.35);
+        color: #f3e8ff;
       }
       .development-tools h2 {
-        font-size: 1em;
+        font-size: 1.05rem;
+        color: #d8b4fe;
+        margin-bottom: 6px;
+      }
+      .development-tools a {
+        display: inline-block;
+        background: rgba(192, 132, 252, 0.15);
+        padding: 2px 8px;
+        border-radius: 6px;
+        margin: 2px 4px 2px 0;
+        font-family: monospace;
+        font-size: 0.88rem;
+        color: #e9d5ff;
+      }
+      .development-tools a:hover {
+        background: rgba(192, 132, 252, 0.3);
       }
 
-      .extensions {
-        display: -ms-grid;
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        margin: 16px -4px;
+      /* Search & Filter Bar */
+      .search-container {
+        display: flex;
+        align-items: stretch;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 6px;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+        transition: border-color 0.25s ease;
+        margin-bottom: 24px;
       }
-      @media (max-width: 944px) {
-        .extensions {
-          grid-template-columns: 1fr 1fr;
+
+      .search-container:focus-within {
+        border-color: var(--gold-primary);
+      }
+
+      .search-input-wrapper {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+      }
+
+      .search-base {
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 1rem;
+        outline: none;
+      }
+
+      .search-bar {
+        width: 100%;
+        padding: 10px 14px;
+      }
+      .search-bar::placeholder {
+        color: #71717a;
+      }
+
+      .search-sort {
+        background: #1c1c22;
+        border-radius: var(--radius-md);
+        padding: 10px 16px;
+        cursor: pointer;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        font-weight: 500;
+        color: var(--gold-primary);
+        min-width: 155px;
+        transition: background 0.2s ease;
+      }
+      .search-sort:hover {
+        background: #25252d;
+      }
+      .search-sort option {
+        background: #18181b;
+        color: #f4f4f5;
+      }
+
+      @media (max-width: 600px) {
+        .search-container {
+          flex-direction: column;
+          gap: 6px;
+        }
+        .search-sort {
+          width: 100%;
+          border-left: none;
         }
       }
-      @media (max-width: 650px) {
+
+      /* Extension Grid & 3D Cards */
+      .extensions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        perspective: 1200px;
+      }
+      @media (max-width: 960px) {
+        .extensions {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 640px) {
         .extensions {
           grid-template-columns: 1fr;
         }
@@ -108,216 +268,265 @@
 
       .extension {
         position: relative;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        margin: 4px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
         overflow: hidden;
-        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        backdrop-filter: blur(12px);
+        transform-style: preserve-3d;
+        transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+        will-change: transform;
       }
-      @media (prefers-color-scheme: dark) {
-        .extension {
-          border-color: #333;
-        }
+
+      .extension:hover {
+        border-color: var(--border-hover);
+        box-shadow: 0 18px 36px -12px rgba(0, 0, 0, 0.8);
       }
-      .extension h3 {
-        font-size: 1.5em;
-      }
-      .extension > :last-child {
-        margin-bottom: 0;
-      }
+
       .extension-banner {
         position: relative;
-        margin: -8px -8px 0 -8px;
+        width: 100%;
+        aspect-ratio: 2 / 1;
+        overflow: hidden;
+        background: #141418;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       }
+
       .extension-image {
         display: block;
         width: 100%;
-        /* TODO: see if there's another way to do this that works in older browsers too */
-        aspect-ratio: 2 / 1;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       }
 
+      .extension:hover .extension-image {
+        transform: scale(1.04);
+      }
+
+      /* Action Buttons Overlay */
       .extension-buttons {
         position: absolute;
-        top: 0;
-        left: 0;
+        inset: 0;
         display: flex;
         flex-wrap: wrap;
-        width: 100%;
-        height: 100%;
         align-items: center;
         align-content: center;
         justify-content: center;
-        gap: 0.5rem;
+        gap: 8px;
+        padding: 12px;
         opacity: 0;
-        transition: opacity .15s;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(9, 9, 11, 0.72);
+        backdrop-filter: blur(4px);
+        transition: opacity 0.2s ease;
         pointer-events: none;
       }
-      .extension:hover .extension-buttons, .extension:focus-within .extension-buttons {
+
+      .extension:hover .extension-buttons,
+      .extension:focus-within .extension-buttons {
         opacity: 1;
-        backdrop-filter: blur(0.6px);
       }
+
       .extension-buttons > * {
-        background-color: #4c97ff;
-        padding: 0.5rem;
-        border-radius: 0.5rem;
-        border: none;
-        font: inherit;
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
         cursor: pointer;
-        color: white;
+        color: #ffffff;
         text-decoration: none;
-        text-shadow: 0 0 4px #0003;
         pointer-events: auto;
-        transition: filter 0.15s;
-        filter: drop-shadow(0px 1px 3px #00000075);
+        transition: transform 0.15s ease, filter 0.15s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       }
+
       .extension-buttons > *:hover {
-        filter: drop-shadow(0px 1px 7px black);
-        z-index: 1;
+        transform: translateY(-2px);
+        filter: brightness(1.1);
       }
-      .extension-buttons *:active {
-        filter: brightness(0.85) drop-shadow(0px 1px 2px #00000075);
+      .extension-buttons > *:active {
+        transform: translateY(0) scale(0.97);
       }
-      .extension-buttons *:disabled {
-        opacity: 0.5;
+
+      .extension-buttons .copy {
+        background: #27272a;
+        border-color: rgba(255, 255, 255, 0.2);
       }
       .extension-buttons .open {
-        background-color: #ffd900;
-        color: white;
+        background: #18181b;
+        color: #ffd700;
+        border: none;
+        font-weight: 700;
       }
       .extension-buttons .docs {
-        background-color: #f69925;
-        color: white;
+        background: #2563eb;
       }
       .extension-buttons .sample {
-        background-color: #3ebb48;
-        color: white;
+        background: #16a34a;
       }
       .extension-buttons :disabled {
         opacity: 0.5;
+        pointer-events: none;
       }
 
+      /* Sample List Dropdown */
       .sample-list {
         display: none;
         position: absolute;
-        left: 0.5rem;
-        right: 0.5rem;
-        width: calc(100% - 1rem);
-        margin-top: -1.5rem;
-        padding: 0.5rem;
-        box-sizing: border-box;
-        background-color: white;
-        border-radius: 0.5rem;
-        box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, .3);
-        border: 1px solid rgba(0, 0, 0, 0.15);
+        left: 12px;
+        right: 12px;
+        top: 12px;
+        z-index: 20;
+        padding: 12px;
+        background: #18181d;
+        border-radius: var(--radius-md);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85);
+        border: 1px solid var(--gold-primary);
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 6px;
+        animation: fadeInScale 0.18s ease-out;
       }
+
+      @keyframes fadeInScale {
+        from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
       .sample-list h3 {
-        font-size: 1rem;
-        margin: 0;
+        font-size: 0.9rem;
+        color: var(--gold-primary);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 6px;
+        margin-bottom: 2px;
       }
+
+      .sample-list-item {
+        font-size: 0.88rem;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.04);
+        color: #e4e4e7;
+        display: block;
+      }
+      .sample-list-item:hover {
+        background: rgba(255, 215, 0, 0.15);
+        color: var(--gold-primary);
+      }
+
       .extension:hover[data-samples-open="true"] .sample-list {
         display: flex;
       }
-      @media (prefers-color-scheme: dark) {
-        .sample-list {
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          background-color: #333;
-        }
-      }
 
-      footer {
-        opacity: 0.8;
-        width: 100%;
-        text-align: center;
-        margin-bottom: 16px;
-      }
-      footer p {
-        margin: 0 0 8px 0;
-      }
-
-      .search-container {
-        display: flex;
-        justify-content: space-evenly;
-      }
-
-      .column {
+      /* Card Content */
+      .extension-content {
+        padding: 16px 18px 20px 18px;
         display: flex;
         flex-direction: column;
+        flex: 1;
       }
 
-      .search-base {
+      .extension h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 6px;
+        transition: color 0.2s ease;
+      }
+
+      .extension:hover h2 {
+        color: var(--gold-primary);
+      }
+
+      .extension p {
+        margin: 0;
+        font-size: 0.92rem;
+        color: var(--text-muted);
+        line-height: 1.55;
+      }
+
+      .extension p a {
+        color: #e4e4e7;
+        text-decoration: underline;
+        text-decoration-color: rgba(255, 215, 0, 0.5);
+        text-underline-offset: 3px;
+      }
+      .extension p a:hover {
+        color: var(--gold-primary);
+      }
+
+      /* Toast Notification */
+      #copy-toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #18181b;
+        color: var(--gold-primary);
+        border: 1px solid var(--gold-primary);
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+        z-index: 9999;
+        pointer-events: none;
+      }
+      #copy-toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      /* Footer */
+      footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 24px;
+        padding-bottom: 32px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+      }
+      footer p {
+        margin: 0 0 10px 0;
+      }
+      footer .links {
         display: flex;
-        padding: 8px;
-        font-size: 1rem;
-        font-weight: 400;
-        line-height: 1.5;
-        background-color: transparent;
-        background-clip: padding-box;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        border-top: 2px solid #ffd900;
-        border-bottom: 2px solid #ffd900;
-        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-        transition: box-shadow .15s ease-in-out, box-shadow .15s ease-in-out;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
       }
-
-      @media (prefers-color-scheme: dark) {
-        .search-base {
-          background-color: #111;
-        }
-      }
-
-      .search-base:focus {
-        outline: none;
-        box-shadow: 0 0 0 .25rem rgba(236, 90, 84, .25);
-        transition: box-shadow .15s ease-in-out, box-shadow .15s ease-in-out;
-      }
-
-      .search-bar {
-        border-right: 1px solid #ffd900;
-        border-top-left-radius: 8px;
-        border-bottom-left-radius: 8px;
-        border-left: 2px solid #ffd900;
-        width: 75%;
-        max-width: 928px;
-      }
-
-      .search-sort {
-        border-left: 1px solid #ffd900;
-        border-radius: 0px;
-        border-top-right-radius: 8px;
-        border-bottom-right-radius: 8px;
-        border-right: 2px solid #ffd900;
-        width: 25%;
-        display: flex;
-      }
-
     </style>
   </head>
 
   <body>
+    <div id="copy-toast">Extension URL copied to clipboard!</div>
+
     <div class="section header">
       <h1>
-       <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="236.05258" height="262.07667" viewBox="0,0,236.05258,262.07667"><g transform="translate(-121.97369,-66.00385)"><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" fill-rule="nonzero" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" style="mix-blend-mode: normal"><path d="" fill="#fbf7f7" stroke="none" stroke-width="1"/><path d="" fill="#fbf7f7" stroke="none" stroke-width="1"/><path d="" fill="#fbf7f7" stroke="none" stroke-width="1"/><path d="" fill="#fbf7f7" stroke="none" stroke-width="1"/><g stroke-width="6.5"><path d="M137.30541,80.68875c1.05714,-0.21582 48.01107,-0.35752 104.34206,-0.31521l102.41998,0.07688l2.59976,1.55688c3.02976,1.81499 5.28631,4.5032 6.93436,8.2606l1.17467,2.6783v95.41587c0,93.40207 -0.02251,95.46696 -1.07088,97.83607c-2.05719,4.65147 -4.23959,7.02661 -8.16449,8.8861l-3.67009,1.73867l-17.02423,0.15323c-9.36333,0.08401 -17.56131,0.26964 -18.21756,0.41188c-2.38668,0.51676 -4.0254,2.28566 -17.03192,18.38562c-3.47679,4.30383 -5.57132,6.17704 -8.95858,8.01456c-1.83641,0.99564 -3.66131,1.04232 -40.98337,1.04232h-39.06127l-3.12312,-2.15053c-1.7178,-1.18346 -4.17147,-3.40759 -5.45324,-4.94252c-3.13795,-3.75905 -9.93667,-12.06907 -12.97521,-15.86053c-3.7261,-4.64871 -3.91174,-4.68661 -23.88885,-4.92604l-17.02423,-0.20374l-3.37794,-1.52284c-4.06165,-1.83148 -5.63777,-3.38618 -7.84322,-7.73724l-1.67057,-3.29501l-0.00659,-95.98921l-0.00714,-95.98921l1.17138,-2.312z" fill="#4f4400" stroke="#534600"/><path d="M133.30543,69.49218c1.05714,-0.21582 52.01107,-0.35752 108.34206,-0.31521l102.41998,0.07688l10.70879,12.49578v95.41587c0,93.40207 -0.02251,95.46696 -1.07088,97.83607c-2.05719,4.65147 -4.23959,7.02661 -8.16449,8.8861l-3.67009,1.73867l-17.02423,0.15323c-9.36333,0.08401 -17.56131,0.26964 -18.21756,0.41188c-2.38668,0.51676 -4.0254,2.28566 -17.03192,18.38562c-3.47679,4.30383 -5.57132,6.17704 -8.95858,8.01456c-1.83641,0.99564 -3.66131,1.04232 -40.98337,1.04232h-39.06127l-3.12312,-2.15053c-1.7178,-1.18346 -4.17147,-3.40759 -5.45324,-4.94252c-3.13795,-3.75905 -9.93667,-12.06907 -12.97521,-15.86053c-3.7261,-4.64871 -3.91174,-4.68661 -23.88885,-4.92604l-17.02423,-0.20374l-3.37794,-1.52284c-4.06165,-1.83148 -5.63777,-3.38618 -7.84322,-7.73724l-1.67057,-3.29501l-0.00659,-95.98921l-0.00714,-95.98921z" fill="#000000" stroke="#ffd700"/></g><g stroke="none" stroke-width="1"><path d="M312.75215,230.96166c-0.23367,0.2974 -0.46734,0.5948 -0.7435,0.8922c-4.58846,5.24699 -10.53647,7.90236 -14.70007,9.43185c-7.88111,3.10146 -14.63635,6.86145 -20.05329,11.17376c-0.27616,0.23367 -0.55232,0.4461 -0.84971,0.65853c-5.26824,3.80248 -11.85353,5.82055 -20.18075,6.09671c-0.27616,0.02124 -0.55232,0.02124 -0.82847,0.02124c-6.45783,0 -12.66076,-2.29424 -17.929,-6.62778c-2.57038,-2.10304 -4.69467,-4.58846 -6.33038,-7.32879c-3.42011,1.31705 -7.09512,1.99683 -10.85511,1.99683c-1.40203,0 -2.74033,-0.10621 -4.0574,-0.33988c-0.8922,-0.12746 -2.76158,-0.38237 -5.65061,-0.78599c-0.5948,-0.06372 -3.42011,-0.33988 -15.97465,-1.38079c-0.12746,0 -0.25492,-0.02124 -0.38237,-0.04249c-9.00698,-0.8922 -14.93374,-2.57038 -19.8621,-5.60812c-0.23367,-0.12746 -0.46734,-0.27616 -0.67978,-0.4461c-7.56246,-5.03457 -12.0872,-13.42551 -12.0872,-22.41125c0,-14.53014 9.64427,-25.89508 24.00446,-28.29553c0.19118,-0.02124 0.36113,-0.04249 0.55232,-0.08497c1.72067,-0.23367 3.52632,-0.33988 5.37445,-0.36113c0.04249,-0.31864 0.10621,-0.63729 0.16995,-0.97717c0.08497,-0.46734 0.19118,-0.93469 0.31864,-1.40203c1.89062,-7.51998 3.84496,-16.1446 5.86304,-25.83135c-7.66869,-1.23209 -12.87319,-5.65061 -14.76381,-7.26507c-3.25016,-2.76158 -5.69309,-6.37287 -7.05264,-10.40902c-3.27141,-9.83545 -0.72226,-20.54187 6.67027,-27.95563c4.56722,-4.56722 10.26032,-7.56246 16.42076,-8.64586c1.3383,-0.23367 3.42011,-0.61604 6.26665,-1.1896l0.31864,-0.06372c6.30914,-1.16836 13.55297,-2.01808 22.15633,-2.59163c6.20292,-0.42486 6.20292,-0.42486 7.13761,-0.42486c0.97717,0 1.95434,0.06372 2.93152,0.19118c9.09195,1.14712 16.99431,6.2879 21.6465,14.14776c2.16678,3.63253 3.88745,8.07229 5.48066,14.02031c0.95593,3.52632 1.42328,5.07705 1.61446,5.65061c0.42486,0.99842 1.04091,2.3792 1.82688,4.14236c0.31864,0.70101 0.5948,1.42328 0.82847,2.14553c0.02124,0.04249 0.40362,1.14712 1.86937,4.33354c0.10621,0.25492 0.21243,0.48859 0.31864,0.7435c2.86779,6.84021 7.35004,17.54663 13.44674,32.11924c0.10621,0.27616 0.23367,0.55232 0.33988,0.82847c0.65853,1.76316 1.44451,3.84496 2.35796,6.22416c7.6262,-0.57355 15.03997,1.84813 21.15792,6.86145c0.61604,0.48859 1.21084,1.01966 1.76316,1.57197c5.82055,5.82055 7.05264,13.04314 7.45625,15.42234c0.10621,0.72226 0.19118,1.44451 0.25492,2.18801c0.70101,9.51681 -2.63412,15.91093 -5.56563,19.60718zM213.48415,246.29904c-2.65536,-0.82847 -5.14078,-2.10304 -7.30756,-3.73875c2.16678,1.65695 4.63095,2.95276 7.30756,3.73875z" fill="#ffd700"/><path d="M294.45353,216.44001c-0.87521,0.99842 -2.68086,1.99258 -5.41906,2.98887c-10.21995,3.98729 -18.99751,8.90715 -26.34542,14.76168c-1.37229,0.99629 -3.80461,1.55498 -7.29056,1.68032c-0.99842,0 -2.02657,-0.4376 -3.08234,-1.30644c-1.06003,-0.87096 -1.58896,-1.86937 -1.58896,-2.98887c0,-1.4955 1.68244,-3.42436 5.04519,-5.79506c2.36433,-1.49337 4.73504,-3.05261 7.10362,-4.67131c0.12108,-0.62029 -1.93311,-7.97033 -6.17319,-22.048c-6.8572,-0.12321 -17.64222,2.11579 -32.35079,6.72337c-0.87521,0.25067 -1.37441,0.74775 -1.49762,1.4955c-0.12533,0.74775 -0.31228,1.99046 -0.56082,3.7345c-0.24004,0.37387 -0.47796,0.93257 -0.71588,1.68032c0,0.49921 0.71588,1.03028 2.14978,1.59109c1.42965,0.56293 2.33671,1.09401 2.70846,1.58896c0.37387,0.49921 0.56082,1.1195 0.56082,1.86937c0,1.49337 -0.65428,2.89753 -1.96284,4.20609c-1.30644,1.30644 -2.89541,1.96071 -4.76266,1.96071c0.12321,0 -2.12004,-0.31015 -6.72762,-0.93257c-0.87308,-0.12321 -6.54069,-0.62242 -17.00493,-1.49337c-4.98358,-0.49708 -8.28473,-1.24483 -9.90131,-2.24325c-1.12162,-0.74775 -1.68244,-1.74404 -1.68244,-2.98887c0,-2.991 1.4955,-4.73504 4.48437,-5.23212c1.74192,-0.24854 3.98516,-0.12533 6.7255,0.37387c0.62242,0.25067 5.54015,0.68403 14.76168,1.30644c0.74775,-5.23212 1.99258,-12.52056 3.73662,-21.86105c3.85983,-15.32249 7.91085,-34.75549 12.14668,-58.29897c-1.24696,-0.24642 -2.5534,-0.37387 -3.92357,-0.37387c-2.36858,0 -5.8864,0.68615 -10.55983,2.05632c-4.66919,1.37229 -8.12753,2.05632 -10.37078,2.05632c-0.87096,0 -2.11792,-0.6819 -3.73662,-2.05632c-0.49921,-1.4955 -0.1572,-2.83167 1.02603,-4.01703c1.18323,-1.18323 2.49179,-1.89912 3.92569,-2.14978c1.43178,-0.24854 3.70476,-0.68403 6.82109,-1.30857c5.35533,-0.99629 11.83228,-1.74192 19.43087,-2.24325c3.61129,-0.24642 5.48066,-0.37387 5.606,-0.37387c1.99258,0.25067 3.48808,1.21509 4.48437,2.89541c0.99629,1.68244 1.99258,4.39091 2.98887,8.12753c1.24483,4.61183 2.08392,7.41377 2.52366,8.41006c0.43548,0.99842 1.15137,2.615 2.14978,4.85825c0.49496,1.49337 1.42965,3.73662 2.80194,6.7255c2.86566,6.85295 7.34791,17.56574 13.45524,32.13836c2.24112,5.97987 5.79294,15.07607 10.65119,27.28224c2.11579,-0.24854 4.85825,-1.30857 8.21887,-3.17582c3.36487,-1.86937 5.85454,-2.80194 7.47749,-2.80194c1.49337,0 2.92515,0.56082 4.29744,1.68032c0.37387,0.37387 0.67978,1.30857 0.93257,2.80194c0.12533,1.62296 -0.06161,2.74458 -0.55657,3.367zM252.97042,189.35322c-2.12641,-4.1105 -4.80939,-10.34316 -8.05531,-18.69373c-1.24908,-2.86566 -4.6182,-10.34103 -10.11374,-22.43248l-9.24065,47.10822c11.18862,-2.11579 19.94919,-3.73662 26.2902,-4.86037c0.74562,-0.49496 1.1195,-0.87096 1.1195,-1.12162z" fill="#000000"/></g></g></g></svg>
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="236.05258" height="262.07667" viewBox="0,0,236.05258,262.07667"><g transform="translate(-121.97369,-66.00385)"><g data-paper-data="{&quot;isPaintingLayer&quot;:true}" fill-rule="nonzero" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" style="mix-blend-mode: normal"><path d="" fill="#fbf7f7" stroke="none" stroke-width="1"/><path d="" fill="#fbf7f7" stroke="none" stroke-width="1"/><path d="" fill="#fbf7f7" stroke="none" stroke-width="1"/><path d="" fill="#fbf7f7" stroke="none" stroke-width="1"/><g stroke-width="6.5"><path d="M137.30541,80.68875c1.05714,-0.21582 48.01107,-0.35752 104.34206,-0.31521l102.41998,0.07688l2.59976,1.55688c3.02976,1.81499 5.28631,4.5032 6.93436,8.2606l1.17467,2.6783v95.41587c0,93.40207 -0.02251,95.46696 -1.07088,97.83607c-2.05719,4.65147 -4.23959,7.02661 -8.16449,8.8861l-3.67009,1.73867l-17.02423,0.15323c-9.36333,0.08401 -17.56131,0.26964 -18.21756,0.41188c-2.38668,0.51676 -4.0254,2.28566 -17.03192,18.38562c-3.47679,4.30383 -5.57132,6.17704 -8.95858,8.01456c-1.83641,0.99564 -3.66131,1.04232 -40.98337,1.04232h-39.06127l-3.12312,-2.15053c-1.7178,-1.18346 -4.17147,-3.40759 -5.45324,-4.94252c-3.13795,-3.75905 -9.93667,-12.06907 -12.97521,-15.86053c-3.7261,-4.64871 -3.91174,-4.68661 -23.88885,-4.92604l-17.02423,-0.20374l-3.37794,-1.52284c-4.06165,-1.83148 -5.63777,-3.38618 -7.84322,-7.73724l-1.67057,-3.29501l-0.00659,-95.98921l-0.00714,-95.98921l1.17138,-2.312z" fill="#4f4400" stroke="#534600"/><path d="M133.30543,69.49218c1.05714,-0.21582 52.01107,-0.35752 108.34206,-0.31521l102.41998,0.07688l10.70879,12.49578v95.41587c0,93.40207 -0.02251,95.46696 -1.07088,97.83607c-2.05719,4.65147 -4.23959,7.02661 -8.16449,8.8861l-3.67009,1.73867l-17.02423,0.15323c-9.36333,0.08401 -17.56131,0.26964 -18.21756,0.41188c-2.38668,0.51676 -4.0254,2.28566 -17.03192,18.38562c-3.47679,4.30383 -5.57132,6.17704 -8.95858,8.01456c-1.83641,0.99564 -3.66131,1.04232 -40.98337,1.04232h-39.06127l-3.12312,-2.15053c-1.7178,-1.18346 -4.17147,-3.40759 -5.45324,-4.94252c-3.13795,-3.75905 -9.93667,-12.06907 -12.97521,-15.86053c-3.7261,-4.64871 -3.91174,-4.68661 -23.88885,-4.92604l-17.02423,-0.20374l-3.37794,-1.52284c-4.06165,-1.83148 -5.63777,-3.38618 -7.84322,-7.73724l-1.67057,-3.29501l-0.00659,-95.98921l-0.00714,-95.98921z" fill="#000000" stroke="#ffd700"/></g><g stroke="none" stroke-width="1"><path d="M312.75215,230.96166c-0.23367,0.2974 -0.46734,0.5948 -0.7435,0.8922c-4.58846,5.24699 -10.53647,7.90236 -14.70007,9.43185c-7.88111,3.10146 -14.63635,6.86145 -20.05329,11.17376c-0.27616,0.23367 -0.55232,0.4461 -0.84971,0.65853c-5.26824,3.80248 -11.85353,5.82055 -20.18075,6.09671c-0.27616,0.02124 -0.55232,0.02124 -0.82847,0.02124c-6.45783,0 -12.66076,-2.29424 -17.929,-6.62778c-2.57038,-2.10304 -4.69467,-4.58846 -6.33038,-7.32879c-3.42011,1.31705 -7.09512,1.99683 -10.85511,1.99683c-1.40203,0 -2.74033,-0.10621 -4.0574,-0.33988c-0.8922,-0.12746 -2.76158,-0.38237 -5.65061,-0.78599c-0.5948,-0.06372 -3.42011,-0.33988 -15.97465,-1.38079c-0.12746,0 -0.25492,-0.02124 -0.38237,-0.04249c-9.00698,-0.8922 -14.93374,-2.57038 -19.8621,-5.60812c-0.23367,-0.12746 -0.46734,-0.27616 -0.67978,-0.4461c-7.56246,-5.03457 -12.0872,-13.42551 -12.0872,-22.41125c0,-14.53014 9.64427,-25.89508 24.00446,-28.29553c0.19118,-0.02124 0.36113,-0.04249 0.55232,-0.08497c1.72067,-0.23367 3.52632,-0.33988 5.37445,-0.36113c0.04249,-0.31864 0.10621,-0.63729 0.16995,-0.97717c0.08497,-0.46734 0.19118,-0.93469 0.31864,-1.40203c1.89062,-7.51998 3.84496,-16.1446 5.86304,-25.83135c-7.66869,-1.23209 -12.87319,-5.65061 -14.76381,-7.26507c-3.25016,-2.76158 -5.69309,-6.37287 -7.05264,-10.40902c-3.27141,-9.83545 -0.72226,-20.54187 6.67027,-27.95563c4.56722,-4.56722 10.26032,-7.56246 16.42076,-8.64586c1.3383,-0.23367 3.42011,-0.61604 6.26665,-1.1896l0.31864,-0.06372c6.30914,-1.16836 13.55297,-2.01808 22.15633,-2.59163c6.20292,-0.42486 6.20292,-0.42486 7.13761,-0.42486c0.97717,0 1.95434,0.06372 2.93152,0.19118c9.09195,1.14712 16.99431,6.2879 21.6465,14.14776c2.16678,3.63253 3.88745,8.07229 5.48066,14.02031c0.95593,3.52632 1.42328,5.07705 1.61446,5.65061c0.42486,0.99842 1.04091,2.3792 1.82688,4.14236c0.31864,0.70101 0.5948,1.42328 0.82847,2.14553c0.02124,0.04249 0.40362,1.14712 1.86937,4.33354c0.10621,0.25492 0.21243,0.48859 0.31864,0.7435c2.86779,6.84021 7.35004,17.54663 13.44674,32.11924c0.10621,0.27616 0.23367,0.55232 0.33988,0.82847c0.65853,1.76316 1.44451,3.84496 2.35796,6.22416c7.6262,-0.57355 15.03997,1.84813 21.15792,6.86145c0.61604,0.48859 1.21084,1.01966 1.76316,1.57197c5.82055,5.82055 7.05264,13.04314 7.45625,15.42234c0.10621,0.72226 0.19118,1.44451 0.25492,2.18801c0.70101,9.51681 -2.63412,15.91093 -5.56563,19.60718zM213.48415,246.29904c-2.65536,-0.82847 -5.14078,-2.10304 -7.30756,-3.73875c2.16678,1.65695 4.63095,2.95276 7.30756,3.73875z" fill="#ffd700"/><path d="M294.45353,216.44001c-0.87521,0.99842 -2.68086,1.99258 -5.41906,2.98887c-10.21995,3.98729 -18.99751,8.90715 -26.34542,14.76168c-1.37229,0.99629 -3.80461,1.55498 -7.29056,1.68032c-0.99842,0 -2.02657,-0.4376 -3.08234,-1.30644c-1.06003,-0.87096 -1.58896,-1.86937 -1.58896,-2.98887c0,-1.4955 1.68244,-3.42436 5.04519,-5.79506c2.36433,-1.49337 4.73504,-3.05261 7.10362,-4.67131c0.12108,-0.62029 -1.93311,-7.97033 -6.17319,-22.048c-6.8572,-0.12321 -17.64222,2.11579 -32.35079,6.72337c-0.87521,0.25067 -1.37441,0.74775 -1.49762,1.4955c-0.12533,0.74775 -0.31228,1.99046 -0.56082,3.7345c-0.24004,0.37387 -0.47796,0.93257 -0.71588,1.68032c0,0.49921 0.71588,1.03028 2.14978,1.59109c1.42965,0.56293 2.33671,1.09401 2.70846,1.58896c0.37387,0.49921 0.56082,1.1195 0.56082,1.86937c0,1.49337 -0.65428,2.89753 -1.96284,4.20609c-1.30644,1.30644 -2.89541,1.96071 -4.76266,1.96071c0.12321,0 -2.12004,-0.31015 -6.72762,-0.93257c-0.87308,-0.12321 -6.54069,-0.62242 -17.00493,-1.49337c-4.98358,-0.49708 -8.28473,-1.24483 -9.90131,-2.24325c-1.12162,-0.74775 -1.68244,-1.74404 -1.68244,-2.98887c0,-2.991 1.4955,-4.73504 4.48437,-5.23212c1.74192,-0.24854 3.98516,-0.12533 6.7255,0.37387c0.62242,0.25067 5.54015,0.68403 14.76168,1.30644c0.74775,-5.23212 1.99258,-12.52056 3.73662,-21.86105c3.85983,-15.32249 7.91085,-34.75549 12.14668,-58.29897c-1.24696,-0.24642 -2.5534,-0.37387 -3.92357,-0.37387c-2.36858,0 -5.8864,0.68615 -10.55983,2.05632c-4.66919,1.37229 -8.12753,2.05632 -10.37078,2.05632c-0.87096,0 -2.11792,-0.6819 -3.73662,-2.05632c-0.49921,-1.4955 -0.1572,-2.83167 1.02603,-4.01703c1.18323,-1.18323 2.49179,-1.89912 3.92569,-2.14978c1.43178,-0.24854 3.70476,-0.68403 6.82109,-1.30857c5.35533,-0.99629 11.83228,-1.74192 19.43087,-2.24325c3.61129,-0.24642 5.48066,-0.37387 5.606,-0.37387c1.99258,0.25067 3.48808,1.21509 4.48437,2.89541c0.99629,1.68244 1.99258,4.39091 2.98887,8.12753c1.24483,4.61183 2.08392,7.41377 2.52366,8.41006c0.43548,0.99842 1.15137,2.615 2.14978,4.85825c0.49496,1.49337 1.42965,3.73662 2.80194,6.7255c2.86566,6.85295 7.34791,17.56574 13.45524,32.13836c2.24112,5.97987 5.79294,15.07607 10.65119,27.28224c2.11579,-0.24854 4.85825,-1.30857 8.21887,-3.17582c3.36487,-1.86937 5.85454,-2.80194 7.47749,-2.80194c1.49337,0 2.92515,0.56082 4.29744,1.68032c0.37387,0.37387 0.67978,1.30857 0.93257,2.80194c0.12533,1.62296 -0.06161,2.74458 -0.55657,3.367zM252.97042,189.35322c-2.12641,-4.1105 -4.80939,-10.34316 -8.05531,-18.69373c-1.24908,-2.86566 -4.6182,-10.34103 -10.11374,-22.43248l-9.24065,47.10822c11.18862,-2.11579 19.94919,-3.73662 26.2902,-4.86037c0.74562,-0.49496 1.1195,-0.87096 1.1195,-1.12162z" fill="#000000"/></g></g></g></svg>
         <div>Aftercode Extension Gallery</div>
       </h1>
 
-      <p>This is the official extension gallery, where you can get extensions that aren't limited by the extension sandbox. All of the extensions here are reviewed for safety.</p>
-      <p>You can also find these extensions in Aftercode's "Add Extension" menu.</p>
+      <p class="header-subtitle">This is the official extension gallery, where you can get extensions that aren't limited by the extension sandbox. All of the extensions here are reviewed for safety.</p>
+      <p class="header-subtitle">You can also find these extensions in Aftercode's "Add Extension" menu.</p>
 
-      <div class="infobox infobox-warning">
-        <div class="infobox-title">These extensions are not compatible with Scratch.</div>
-        Projects that use these extensions can't be opened in Scratch or uploaded to the Scratch website.
-        They can still be used in <a href="https://packager.turbowarp.org/">the TurboWarp packager</a>.
-      </div>
+      <div class="infobox-grid">
+        <div class="infobox infobox-warning">
+          <div class="infobox-title">These extensions are not compatible with Scratch.</div>
+          Projects that use these extensions can't be opened in Scratch or uploaded to the Scratch website.
+          They can still be used in <a href="https://packager.turbowarp.org/">the TurboWarp packager</a>.
+        </div>
 
-      <div class="infobox">
-        <div class="infobox-title">Some extensions may not work in TurboWarp Desktop.</div>
-        To make sure extensions work offline, each release of <a href="https://desktop.turbowarp.org/">TurboWarp Desktop</a> comes with a copy of these extensions as of its release date, so some extensions may be outdated or missing.
-        Update to the latest version for the best results.
+        <div class="infobox">
+          <div class="infobox-title">Some extensions may not work in TurboWarp Desktop.</div>
+          To make sure extensions work offline, each release of <a href="https://desktop.turbowarp.org/">TurboWarp Desktop</a> comes with a copy of these extensions as of its release date, so some extensions may be outdated or missing.
+          Update to the latest version for the best results.
+        </div>
       </div>
     </div>
 
@@ -358,9 +567,18 @@
             document.body.removeChild(input);
             e.target.focus();
           }
+
+          const toast = document.getElementById('copy-toast');
+          if (toast) {
+            toast.classList.add('show');
+            clearTimeout(window._toastTimeout);
+            window._toastTimeout = setTimeout(() => {
+              toast.classList.remove('show');
+            }, 2200);
+          }
         }
 
-        if (e.target.className.includes('sample-list-button')) {
+        if (e.target.className && typeof e.target.className === 'string' && e.target.className.includes('sample-list-button')) {
           var extension = e.target.closest('.extension');
           extension.dataset.samplesOpen = extension.dataset.samplesOpen !== 'true';
         }
@@ -418,21 +636,20 @@
           }
         });
       });
-
     </script>
 
     <div class="section extensions-outer">
       <div class="search-container">
-        <input type="text" id="search-bar" class="search-base search-bar" placeholder="Search for extensions...">
+        <div class="search-input-wrapper">
+          <input type="text" id="search-bar" class="search-base search-bar" placeholder="Search for extensions...">
+        </div>
         <select class="search-base search-sort" id="search-sort">
           <option value="original">Sort: Default</option>
-          <!--<option value="option2">Sort: Relevance</option>-->
           <option value="abc">Sort: ABC</option>
           <option value="zxy">Sort: ZXY</option>
-          <!--<option value="newest">Sort: Newest</option>
-          <option value="oldest">Sort: Oldest</option>-->
         </select>
       </div>
+
       <div class="extensions">
         <%
         const peopleToHTML = (people) => {
@@ -484,19 +701,21 @@
               </div>
             <% } %>
 
-            <h2><%= metadata.name %></h2>
-            <p>
-              <%= metadata.description %>
-              <%-
-                (metadata.original.length && metadata.by.length) ? (
-                  `Created by ${peopleToHTML(metadata.original)}. Updated by ${peopleToHTML(metadata.by)}.`
-                ) : metadata.by.length ? (
-                  `Created by ${peopleToHTML(metadata.by)}.`
-                ) : metadata.original.length ? (
-                  `Created by ${peopleToHTML(metadata.original)}.`
-                ) : ''
-              %>
-            </p>
+            <div class="extension-content">
+              <h2><%= metadata.name %></h2>
+              <p>
+                <%= metadata.description %>
+                <%-
+                  (metadata.original.length && metadata.by.length) ? (
+                    `Created by ${peopleToHTML(metadata.original)}. Updated by ${peopleToHTML(metadata.by)}.`
+                  ) : metadata.by.length ? (
+                    `Created by ${peopleToHTML(metadata.by)}.`
+                  ) : metadata.original.length ? (
+                    `Created by ${peopleToHTML(metadata.original)}.`
+                  ) : ''
+                %>
+              </p>
+            </div>
           </div>
         <% } %>
       </div>
@@ -506,9 +725,9 @@
       <p>TurboWarp is not affiliated with Scratch, the Scratch Team, or the Scratch Foundation.</p>
       <div class="links">
         <a href="https://github.com/TurboWarp/extensions/tree/master/images#readme">Image Attribution</a>
-        -
+        <span>•</span>
         <a href="https://github.com/TurboWarp/extensions">GitHub</a>
-        -
+        <span>•</span>
         <a href="https://docs.turbowarp.org/development/extensions/introduction">Developer Documentation</a>
       </div>
     </footer>
