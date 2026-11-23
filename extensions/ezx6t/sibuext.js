@@ -75,17 +75,20 @@ class AsyncAwait {
 	  }, 10);
     });
   }
+  getVar(name, util) {
+	return util.target.lookupVariableById(name) || util.target.lookupVariableByNameAndType(name);
+  }
   define_(args, util) {
-	util.target.lookupVariableById(args.VAR).value = util.target.blocks.getBranch(util.thread.peekStack(), 1);
+	this.getVar(args.VAR, util).value = util.target.blocks.getBranch(util.thread.peekStack(), 1);
   }
   async_(args, util) {
 	const rt = util.runtime;
 	const tg = util.target;
-	const sbi = util.target.lookupVariableById(args.VAR).value;
-	util.target.lookupVariableById(args.VAR2).value = this.runThreadAsync(rt, tg, sbi);
+	const sbi = this.getVar(args.VAR, util).value;
+	this.getVar(args.VAR2, util).value = this.runThreadAsync(rt, tg, sbi);
   }
   async await_(args, util) {
-	return await util.target.lookupVariableById(args.VAR).value;
+	return await this.getVar(args.VAR, util).value;
   }
   return_(args, util) {
 	util.thread._ez2a_return = args.DAT;
