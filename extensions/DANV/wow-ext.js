@@ -22,7 +22,7 @@
 
   let userBalance = 0;
   let isLoggedIn = false;
-  let currentUsername = "Guest"; // Mặc định là "Guest" thay vì rỗng hoặc "Khách"
+  let currentUsername = "Guest";
   let lastTxStatus = "NONE";
   let lastTxId = "";
 
