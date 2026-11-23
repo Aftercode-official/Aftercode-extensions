@@ -16,7 +16,6 @@
     "http://127.0.0.1:5500"
   ];
 
-  alert("modify by katboizz & StudioDANV");
 
   const COOLDOWN_MS = 5000;
   const REQUEST_TIMEOUT_MS = 10000;
