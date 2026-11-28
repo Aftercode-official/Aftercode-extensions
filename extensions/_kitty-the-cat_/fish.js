@@ -1162,7 +1162,7 @@ drawWaterRipples(ctx, time) {
             }
         }
 
-        ctx.strokeStyle = "rgba(190,245,255,0.12)";
+        ctx.strokeStyle = "rgba(190,245,255,0)";
         ctx.lineWidth = 1.2;
         ctx.stroke();
     }
@@ -1174,7 +1174,7 @@ drawWaterRipples(ctx, time) {
         const x = this.width * (0.2 + i * 0.3);
         const y = this.height * (0.3 + (i % 2) * 0.35);
         const radius = 8 + cycle * 32;
-        const alpha = (1 - cycle) * 0.12;
+        const alpha = (1 - cycle) * 0;
 
         ctx.beginPath();
         ctx.ellipse(
