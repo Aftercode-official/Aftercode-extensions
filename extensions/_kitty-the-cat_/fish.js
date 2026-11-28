@@ -1,4 +1,8 @@
-
+// Name: fish
+// ID: twaquarium
+// Description: Aquarium Extension for TurboWarp
+// By: _Kitty-the-cat_ <https://scratch.mit.edu/users/_kitty-the-cat_/>
+// License: MIT
 (function (Scratch) {
     "use strict";
 
